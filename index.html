@@ -3,60 +3,71 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#14110f">
+<meta name="theme-color" content="#0d0d0d">
 <meta name="description" content="Calculadora de ritmo de calorias para bike indoor.">
 <title>Ritmo de Queima</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Oswald:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap">
 <style>
   :root{
-    --ground:#14110f; --surface:#1f1b18; --surface-2:#2a2420;
-    --line:#3a322c; --text:#f5efe9; --muted:#a69b8f;
-    --ember:#ff6b2c; --ember-hi:#ffb020;
-    --good:#34d399;
-    --shadow:0 10px 30px rgba(0,0,0,.45);
+    --ground:#0d0d0d; --surface:#161616; --surface-2:#1e1e1e;
+    --line:#323232; --text:#f4f4f5; --muted:#9b9b9b;
+    --red:#dc2626; --red-hi:#ff4444;
+    --good:#22c55e;
+    --shadow:0 10px 30px rgba(0,0,0,.55);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; background:radial-gradient(120% 80% at 50% -10%, #2a1a12 0%, var(--ground) 55%);
+    margin:0; min-height:100dvh; overflow-y:auto;
+    background:radial-gradient(120% 80% at 50% -10%, #2a0b0d 0%, var(--ground) 55%);
     color:var(--text); font-family:"Barlow",system-ui,-apple-system,sans-serif;
-    display:flex; align-items:center; justify-content:center; padding:16px;
+    display:flex; align-items:center; justify-content:center;
+    padding:calc(12px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom));
   }
   .phone{
-    width:100%; max-width:400px; height:min(96vh,820px);
+    width:100%; max-width:400px;
+    height:min(820px, calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
     background:var(--ground); border:1px solid var(--line); border-radius:28px;
     box-shadow:var(--shadow); overflow:hidden; display:flex; flex-direction:column; position:relative;
   }
+
+  .mi{font-family:"Material Symbols Outlined";font-weight:normal;font-style:normal;line-height:1;
+    letter-spacing:normal;text-transform:none;white-space:nowrap;direction:ltr;
+    font-feature-settings:"liga";-webkit-font-smoothing:antialiased;display:inline-block;vertical-align:middle}
+  .mi.sm{font-size:15px}
+
   header{display:flex; align-items:center; justify-content:space-between; padding:16px 18px 12px; flex:0 0 auto}
   .brand{display:flex; align-items:center; gap:9px}
-  .flame{width:28px;height:28px;border-radius:8px;background:linear-gradient(160deg,var(--ember-hi),var(--ember));display:grid;place-items:center;font-size:16px}
+  .flame{width:30px;height:30px;border-radius:9px;background:linear-gradient(160deg,var(--red-hi),var(--red));display:grid;place-items:center;color:#fff;font-size:19px}
   .brand h1{font-family:"Oswald",sans-serif;font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:16px;margin:0}
-  .iconbtn{background:var(--surface);color:var(--muted);border:1px solid var(--line);width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer;display:grid;place-items:center}
+  .iconbtn{background:var(--surface);color:var(--muted);border:1px solid var(--line);width:36px;height:36px;border-radius:10px;font-size:20px;cursor:pointer;display:grid;place-items:center}
   .iconbtn:active{transform:scale(.94)}
-  .iconbtn:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+  .iconbtn:focus-visible{outline:2px solid var(--red);outline-offset:2px}
 
   .stage{flex:1 1 auto; display:flex; flex-direction:column; padding:0 18px 18px; overflow:hidden}
 
   /* FORM */
   .form{display:flex;flex-direction:column;gap:14px}
   .field{display:flex;flex-direction:column;gap:6px}
-  label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px}
   input{
     width:100%; background:var(--surface-2); border:1px solid var(--line); color:var(--text);
     border-radius:11px; padding:12px 13px; font-family:"Oswald",sans-serif; font-size:20px; font-weight:500; font-variant-numeric:tabular-nums;
   }
-  input:focus{outline:none;border-color:var(--ember)}
+  input:focus{outline:none;border-color:var(--red)}
   .hintline{font-size:12px;color:var(--muted);margin-top:-2px}
   .btn{
     border:none; border-radius:13px; cursor:pointer; font-family:"Oswald",sans-serif; text-transform:uppercase;
-    letter-spacing:.05em; font-weight:600; font-size:16px; padding:15px; color:#1a1109;
-    background:linear-gradient(135deg,var(--ember-hi),var(--ember)); margin-top:4px;
+    letter-spacing:.05em; font-weight:600; font-size:16px; padding:15px; color:#fff;
+    background:linear-gradient(135deg,var(--red-hi),var(--red)); margin-top:4px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
   }
+  .btn .mi{font-size:20px}
   .btn:active{transform:scale(.985)}
-  .btn:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+  .btn:focus-visible{outline:2px solid var(--red);outline-offset:2px}
 
   /* RESULT */
   .result{display:flex;flex-direction:column;height:100%;gap:12px}
@@ -65,43 +76,52 @@
     background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;flex:0 0 auto;
   }
   .summary .cell{display:flex;flex-direction:column;gap:2px}
-  .summary .cell.r{text-align:right}
-  .summary .cell small{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .summary .cell.r{text-align:right;align-items:flex-end}
+  .summary .cell small{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:5px}
   .summary .cell b{font-family:"Oswald",sans-serif;font-weight:600;font-size:22px;font-variant-numeric:tabular-nums}
-  .summary .cell b.goal{color:var(--ember-hi)}
+  .summary .cell b.goal{color:var(--red-hi)}
 
-  .listhead{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:2px 2px 0}
+  .listhead{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:2px 2px 0;display:flex;align-items:center;gap:6px}
   .list{flex:1 1 auto;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:2px}
   .row{
     display:flex;align-items:center;justify-content:space-between;
     background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 15px;
   }
-  .row.last{border-left:3px solid var(--ember-hi)}
-  .row.marco{border-color:var(--ember);background:#241a13}
-  .row.marco .cal{color:var(--ember-hi)}
-  .row.marco .min small{color:var(--ember-hi)}
-  .row .min{font-family:"Oswald",sans-serif;font-weight:500;font-size:17px;font-variant-numeric:tabular-nums}
-  .row .min small{display:block;font-family:"Barlow",sans-serif;font-weight:600;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .row .min{display:flex;align-items:center;gap:11px}
+  .row .rowic{font-size:21px;color:var(--muted)}
+  .row .mtext{font-family:"Oswald",sans-serif;font-weight:500;font-size:17px;font-variant-numeric:tabular-nums}
+  .row .mtext small{display:block;font-family:"Barlow",sans-serif;font-weight:600;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .row .right{display:flex;align-items:center;gap:8px}
   .row .cal{font-family:"Oswald",sans-serif;font-weight:600;font-size:24px;font-variant-numeric:tabular-nums}
-  .row.last .cal{color:var(--ember-hi)}
+  .row .check{display:none;color:var(--good);font-size:24px}
+
+  .row.last{border-left:3px solid var(--red-hi)}
+  .row.last .cal{color:var(--red-hi)}
+  .row.last .rowic{color:var(--red-hi)}
+  .row.marco{border-color:var(--red);background:#2a1113}
+  .row.marco .cal{color:var(--red-hi)}
+  .row.marco .rowic{color:var(--red-hi)}
+  .row.marco .mtext small{color:var(--red-hi)}
   .row.click{cursor:pointer}
-  .row.next{border-color:var(--ember)}
-  .row.done{border-color:var(--good);background:#15271e}
+  .row.next{border-color:var(--red)}
+  .row.next .rowic{color:var(--red)}
+  .row.done{border-color:var(--good);background:#10250f}
   .row.done .cal{color:var(--good)}
-  .row.done .cal::before{content:"✓ "}
-  .row.done .min small{color:var(--good)}
+  .row.done .rowic{color:var(--good)}
+  .row.done .mtext small{color:var(--good)}
+  .row.done .check{display:inline-block}
 
   .marcoctl{flex:0 0 auto;display:flex;flex-direction:column;gap:9px;padding-top:2px}
   .btn.ghost{background:var(--surface-2);color:var(--text);border:1px solid var(--line);margin-top:0}
   .marcoform{display:flex;gap:8px;align-items:flex-end}
   .marcoform .field{flex:1}
   .marcoform input{font-size:18px;padding:10px 11px}
-  .marcoform .btn{margin-top:0;flex:0 0 auto;padding:12px 15px;font-size:14px;align-self:stretch;display:flex;align-items:center}
-  .linkbtn{background:none;border:none;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;font-family:"Barlow",sans-serif;align-self:flex-start;padding:0}
-  .linkbtn:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+  .marcoform .btn{margin-top:0;flex:0 0 auto;padding:12px 15px;font-size:14px;align-self:stretch}
+  .linkbtn{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:"Barlow",sans-serif;align-self:flex-start;padding:0;display:flex;align-items:center;gap:5px}
+  .linkbtn span:last-child{text-decoration:underline}
+  .linkbtn:focus-visible{outline:2px solid var(--red);outline-offset:2px}
 
   .hidden{display:none!important}
-
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -109,49 +129,49 @@
 
 <div class="phone">
   <header>
-    <div class="brand"><div class="flame">🔥</div><h1>Ritmo de Queima</h1></div>
-    <button class="iconbtn hidden" id="back" title="Editar">‹</button>
+    <div class="brand"><div class="flame"><span class="mi">local_fire_department</span></div><h1>Ritmo de Queima</h1></div>
+    <button class="iconbtn hidden" id="back" title="Editar" aria-label="Voltar e editar"><span class="mi">arrow_back</span></button>
   </header>
 
   <div class="stage">
     <!-- FORM -->
     <div class="form" id="form">
       <div class="field">
-        <label for="start">Caloria inicial</label>
+        <label for="start"><span class="mi sm">bolt</span> Caloria inicial</label>
         <input id="start" type="number" inputmode="numeric" value="300">
       </div>
       <div class="field">
-        <label for="goal">Objetivo (calorias)</label>
+        <label for="goal"><span class="mi sm">flag</span> Objetivo (calorias)</label>
         <input id="goal" type="number" inputmode="numeric" value="700">
       </div>
       <div class="field">
-        <label for="total">Tempo da aula (min)</label>
+        <label for="total"><span class="mi sm">timer</span> Tempo da aula (min)</label>
         <input id="total" type="number" inputmode="numeric" value="50">
       </div>
       <div class="field">
-        <label for="interval">Intervalo (min)</label>
+        <label for="interval"><span class="mi sm">av_timer</span> Intervalo (min)</label>
         <input id="interval" type="number" inputmode="numeric" min="5" max="10" value="5">
         <span class="hintline">Entre 5 e 10 minutos.</span>
       </div>
-      <button class="btn" id="startBtn">Iniciar ▸</button>
+      <button class="btn" id="startBtn"><span class="mi">play_arrow</span> Iniciar</button>
     </div>
 
     <!-- RESULT -->
     <div class="result hidden" id="result">
       <div class="summary">
-        <div class="cell"><small>Início</small><b id="sStart">300</b></div>
-        <div class="cell r"><small>Objetivo</small><b class="goal" id="sGoal">700</b></div>
+        <div class="cell"><small><span class="mi sm">bolt</span> Início</small><b id="sStart">300</b></div>
+        <div class="cell r"><small><span class="mi sm">flag</span> Objetivo</small><b class="goal" id="sGoal">700</b></div>
       </div>
-      <div class="listhead" id="listHead">Metas a cada 5 min</div>
+      <div class="listhead" id="listHead"><span class="mi sm">checklist</span> Metas a cada 5 min</div>
       <div class="list" id="list"></div>
       <div class="marcoctl">
-        <button class="btn ghost" id="addMarco">＋ Registrar marco</button>
+        <button class="btn ghost" id="addMarco"><span class="mi">push_pin</span> Registrar marco</button>
         <div class="marcoform hidden" id="marcoForm">
-          <div class="field"><label for="mMin">Minuto</label><input id="mMin" type="number" inputmode="numeric" placeholder="25"></div>
-          <div class="field"><label for="mCal">Calorias</label><input id="mCal" type="number" inputmode="numeric" placeholder="400"></div>
-          <button class="btn" id="applyMarco">Recalcular</button>
+          <div class="field"><label for="mMin"><span class="mi sm">schedule</span> Minuto</label><input id="mMin" type="number" inputmode="numeric" placeholder="25"></div>
+          <div class="field"><label for="mCal"><span class="mi sm">bolt</span> Calorias</label><input id="mCal" type="number" inputmode="numeric" placeholder="400"></div>
+          <button class="btn" id="applyMarco" aria-label="Recalcular"><span class="mi">calculate</span></button>
         </div>
-        <button class="linkbtn hidden" id="clearMarco">Limpar marco</button>
+        <button class="linkbtn hidden" id="clearMarco"><span class="mi sm">close</span><span>Limpar marco</span></button>
       </div>
     </div>
   </div>
@@ -175,11 +195,15 @@
 
   var cfg=null, marco=null, done=0, checkpoints=0;
 
-  function addRow(mark,cal,extra,label,cls){
+  function addRow(mark,cal,label,cls){
+    var icon = cls.indexOf("marco")>-1 ? "push_pin" : (cls.indexOf("last")>-1 ? "sports_score" : "schedule");
     var row=document.createElement("div");
-    row.className="row"+(cls?(" "+cls):"");
-    row.innerHTML='<div class="min">min '+mark+'<small>'+label+'</small></div>'+
-      '<div class="cal">'+Math.round(cal)+'</div>';
+    row.className="row "+cls;
+    row.innerHTML=
+      '<div class="min"><span class="mi rowic">'+icon+'</span>'+
+        '<span class="mtext">min '+mark+'<small>'+label+'</small></span></div>'+
+      '<div class="right"><span class="mi check">check_circle</span>'+
+        '<span class="cal">'+Math.round(cal)+'</span></div>';
     $("list").appendChild(row);
     return row;
   }
@@ -201,11 +225,11 @@
     var baseCal = marco ? marco.cal : cfg.inicio;
 
     if(marco){
-      $("listHead").textContent="Recalculado a partir do min "+marco.min;
-      addRow(marco.min,marco.cal,null,"marco registrado","marco");
+      $("listHead").innerHTML='<span class="mi sm">push_pin</span> Recalculado a partir do min '+marco.min;
+      addRow(marco.min,marco.cal,"marco registrado","marco");
       $("clearMarco").classList.remove("hidden");
     }else{
-      $("listHead").textContent="Metas a cada "+cfg.intervalo+" min";
+      $("listHead").innerHTML='<span class="mi sm">checklist</span> Metas a cada '+cfg.intervalo+' min';
       $("clearMarco").classList.add("hidden");
     }
 
@@ -220,7 +244,7 @@
       var dur=mark-prevMin;
       var delta=cal-prevCal;
       var isLast=(i===n);
-      var r=addRow(mark,cal,null,(isLast?'fim · ':'')+dur+' min · +'+Math.round(delta)+' cal',"click"+(isLast?" last":""));
+      var r=addRow(mark,cal,(isLast?'fim · ':'')+dur+' min · +'+Math.round(delta)+' cal',"click"+(isLast?" last":""));
       r.dataset.idx=(i-1);
       prevMin=mark; prevCal=cal;
     }
