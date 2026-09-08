@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14110f">
+<meta name="description" content="Calculadora de ritmo de calorias para bike indoor.">
+<title>Ritmo de Queima</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --ground:#14110f; --surface:#1f1b18; --surface-2:#2a2420;
+    --line:#3a322c; --text:#f5efe9; --muted:#a69b8f;
+    --ember:#ff6b2c; --ember-hi:#ffb020;
+    --good:#34d399;
+    --shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:radial-gradient(120% 80% at 50% -10%, #2a1a12 0%, var(--ground) 55%);
+    color:var(--text); font-family:"Barlow",system-ui,-apple-system,sans-serif;
+    display:flex; align-items:center; justify-content:center; padding:16px;
+  }
+  .phone{
+    width:100%; max-width:400px; height:min(96vh,820px);
+    background:var(--ground); border:1px solid var(--line); border-radius:28px;
+    box-shadow:var(--shadow); overflow:hidden; display:flex; flex-direction:column; position:relative;
+  }
+  header{display:flex; align-items:center; justify-content:space-between; padding:16px 18px 12px; flex:0 0 auto}
+  .brand{display:flex; align-items:center; gap:9px}
+  .flame{width:28px;height:28px;border-radius:8px;background:linear-gradient(160deg,var(--ember-hi),var(--ember));display:grid;place-items:center;font-size:16px}
+  .brand h1{font-family:"Oswald",sans-serif;font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:16px;margin:0}
+  .iconbtn{background:var(--surface);color:var(--muted);border:1px solid var(--line);width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer;display:grid;place-items:center}
+  .iconbtn:active{transform:scale(.94)}
+  .iconbtn:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+
+  .stage{flex:1 1 auto; display:flex; flex-direction:column; padding:0 18px 18px; overflow:hidden}
+
+  /* FORM */
+  .form{display:flex;flex-direction:column;gap:14px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  input{
+    width:100%; background:var(--surface-2); border:1px solid var(--line); color:var(--text);
+    border-radius:11px; padding:12px 13px; font-family:"Oswald",sans-serif; font-size:20px; font-weight:500; font-variant-numeric:tabular-nums;
+  }
+  input:focus{outline:none;border-color:var(--ember)}
+  .hintline{font-size:12px;color:var(--muted);margin-top:-2px}
+  .btn{
+    border:none; border-radius:13px; cursor:pointer; font-family:"Oswald",sans-serif; text-transform:uppercase;
+    letter-spacing:.05em; font-weight:600; font-size:16px; padding:15px; color:#1a1109;
+    background:linear-gradient(135deg,var(--ember-hi),var(--ember)); margin-top:4px;
+  }
+  .btn:active{transform:scale(.985)}
+  .btn:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+
+  /* RESULT */
+  .result{display:flex;flex-direction:column;height:100%;gap:12px}
+  .summary{
+    display:flex;justify-content:space-between;gap:10px;
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;flex:0 0 auto;
+  }
+  .summary .cell{display:flex;flex-direction:column;gap:2px}
+  .summary .cell.r{text-align:right}
+  .summary .cell small{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .summary .cell b{font-family:"Oswald",sans-serif;font-weight:600;font-size:22px;font-variant-numeric:tabular-nums}
+  .summary .cell b.goal{color:var(--ember-hi)}
+
+  .listhead{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:2px 2px 0}
+  .list{flex:1 1 auto;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:2px}
+  .row{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 15px;
+  }
+  .row.last{border-left:3px solid var(--ember-hi)}
+  .row.marco{border-color:var(--ember);background:#241a13}
+  .row.marco .cal{color:var(--ember-hi)}
+  .row.marco .min small{color:var(--ember-hi)}
+  .row .min{font-family:"Oswald",sans-serif;font-weight:500;font-size:17px;font-variant-numeric:tabular-nums}
+  .row .min small{display:block;font-family:"Barlow",sans-serif;font-weight:600;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .row .cal{font-family:"Oswald",sans-serif;font-weight:600;font-size:24px;font-variant-numeric:tabular-nums}
+  .row.last .cal{color:var(--ember-hi)}
+  .row.click{cursor:pointer}
+  .row.next{border-color:var(--ember)}
+  .row.done{border-color:var(--good);background:#15271e}
+  .row.done .cal{color:var(--good)}
+  .row.done .cal::before{content:"✓ "}
+  .row.done .min small{color:var(--good)}
+
+  .marcoctl{flex:0 0 auto;display:flex;flex-direction:column;gap:9px;padding-top:2px}
+  .btn.ghost{background:var(--surface-2);color:var(--text);border:1px solid var(--line);margin-top:0}
+  .marcoform{display:flex;gap:8px;align-items:flex-end}
+  .marcoform .field{flex:1}
+  .marcoform input{font-size:18px;padding:10px 11px}
+  .marcoform .btn{margin-top:0;flex:0 0 auto;padding:12px 15px;font-size:14px;align-self:stretch;display:flex;align-items:center}
+  .linkbtn{background:none;border:none;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;font-family:"Barlow",sans-serif;align-self:flex-start;padding:0}
+  .linkbtn:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+
+  .hidden{display:none!important}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <header>
+    <div class="brand"><div class="flame">🔥</div><h1>Ritmo de Queima</h1></div>
+    <button class="iconbtn hidden" id="back" title="Editar">‹</button>
+  </header>
+
+  <div class="stage">
+    <!-- FORM -->
+    <div class="form" id="form">
+      <div class="field">
+        <label for="start">Caloria inicial</label>
+        <input id="start" type="number" inputmode="numeric" value="300">
+      </div>
+      <div class="field">
+        <label for="goal">Objetivo (calorias)</label>
+        <input id="goal" type="number" inputmode="numeric" value="700">
+      </div>
+      <div class="field">
+        <label for="total">Tempo da aula (min)</label>
+        <input id="total" type="number" inputmode="numeric" value="50">
+      </div>
+      <div class="field">
+        <label for="interval">Intervalo (min)</label>
+        <input id="interval" type="number" inputmode="numeric" min="5" max="10" value="5">
+        <span class="hintline">Entre 5 e 10 minutos.</span>
+      </div>
+      <button class="btn" id="startBtn">Iniciar ▸</button>
+    </div>
+
+    <!-- RESULT -->
+    <div class="result hidden" id="result">
+      <div class="summary">
+        <div class="cell"><small>Início</small><b id="sStart">300</b></div>
+        <div class="cell r"><small>Objetivo</small><b class="goal" id="sGoal">700</b></div>
+      </div>
+      <div class="listhead" id="listHead">Metas a cada 5 min</div>
+      <div class="list" id="list"></div>
+      <div class="marcoctl">
+        <button class="btn ghost" id="addMarco">＋ Registrar marco</button>
+        <div class="marcoform hidden" id="marcoForm">
+          <div class="field"><label for="mMin">Minuto</label><input id="mMin" type="number" inputmode="numeric" placeholder="25"></div>
+          <div class="field"><label for="mCal">Calorias</label><input id="mCal" type="number" inputmode="numeric" placeholder="400"></div>
+          <button class="btn" id="applyMarco">Recalcular</button>
+        </div>
+        <button class="linkbtn hidden" id="clearMarco">Limpar marco</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var LS_KEY="ritmoQueimaCfg";
+
+  function loadCfg(){
+    try{
+      var c=JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(!c)return;
+      if(c.start!=null)$("start").value=c.start;
+      if(c.goal!=null)$("goal").value=c.goal;
+      if(c.total!=null)$("total").value=c.total;
+      if(c.interval!=null)$("interval").value=c.interval;
+    }catch(e){}
+  }
+  function saveCfg(cfg){ try{localStorage.setItem(LS_KEY,JSON.stringify(cfg));}catch(e){} }
+
+  var cfg=null, marco=null, done=0, checkpoints=0;
+
+  function addRow(mark,cal,extra,label,cls){
+    var row=document.createElement("div");
+    row.className="row"+(cls?(" "+cls):"");
+    row.innerHTML='<div class="min">min '+mark+'<small>'+label+'</small></div>'+
+      '<div class="cal">'+Math.round(cal)+'</div>';
+    $("list").appendChild(row);
+    return row;
+  }
+  function applyProgress(){
+    var rows=$("list").querySelectorAll(".row.click");
+    rows.forEach(function(r,i){
+      r.classList.toggle("done", i<done);
+      r.classList.toggle("next", i===done);
+    });
+  }
+
+  function render(){
+    $("sStart").textContent=Math.round(cfg.inicio);
+    $("sGoal").textContent=Math.round(cfg.objetivo);
+    $("list").innerHTML="";
+
+    // ponto de partida do cálculo: o marco (se houver) ou o início da aula
+    var baseMin = marco ? marco.min : 0;
+    var baseCal = marco ? marco.cal : cfg.inicio;
+
+    if(marco){
+      $("listHead").textContent="Recalculado a partir do min "+marco.min;
+      addRow(marco.min,marco.cal,null,"marco registrado","marco");
+      $("clearMarco").classList.remove("hidden");
+    }else{
+      $("listHead").textContent="Metas a cada "+cfg.intervalo+" min";
+      $("clearMarco").classList.add("hidden");
+    }
+
+    var restante=cfg.objetivo-baseCal;
+    var remTime=Math.max(1,cfg.tempo-baseMin);
+    var n=Math.max(1,Math.ceil(remTime/cfg.intervalo));   // último intervalo pode ser menor
+    var prevMin=baseMin, prevCal=baseCal;
+    for(var i=1;i<=n;i++){
+      var mark=Math.min(baseMin+i*cfg.intervalo,cfg.tempo);
+      // proporcional ao tempo: intervalos cheios iguais, último (curto) menor
+      var cal=(i===n)?cfg.objetivo:baseCal+restante*((mark-baseMin)/remTime);
+      var dur=mark-prevMin;
+      var delta=cal-prevCal;
+      var isLast=(i===n);
+      var r=addRow(mark,cal,null,(isLast?'fim · ':'')+dur+' min · +'+Math.round(delta)+' cal',"click"+(isLast?" last":""));
+      r.dataset.idx=(i-1);
+      prevMin=mark; prevCal=cal;
+    }
+    checkpoints=n;
+    if(done>checkpoints)done=checkpoints;
+    applyProgress();
+  }
+
+  function start(){
+    cfg={
+      inicio:+$("start").value||0,
+      objetivo:+$("goal").value||0,
+      tempo:Math.max(1,+$("total").value||1),
+      intervalo:Math.min(10,Math.max(5,+$("interval").value||5))
+    };
+    $("interval").value=cfg.intervalo;
+    saveCfg({start:cfg.inicio,goal:cfg.objetivo,total:cfg.tempo,interval:cfg.intervalo});
+    marco=null; done=0;
+    $("marcoForm").classList.add("hidden");
+    render();
+    $("form").classList.add("hidden");
+    $("result").classList.remove("hidden");
+    $("back").classList.remove("hidden");
+  }
+
+  function applyMarco(){
+    var min=+$("mMin").value, cal=+$("mCal").value;
+    if($("mMin").value===""||isNaN(min)||$("mCal").value===""||isNaN(cal)) return;
+    min=Math.min(Math.max(0,Math.round(min)),cfg.tempo);
+    marco={min:min,cal:cal}; done=0;
+    $("marcoForm").classList.add("hidden");
+    render();
+  }
+
+  loadCfg();
+  $("startBtn").addEventListener("click",start);
+  $("back").addEventListener("click",function(){
+    $("result").classList.add("hidden");
+    $("form").classList.remove("hidden");
+    $("back").classList.add("hidden");
+  });
+  $("addMarco").addEventListener("click",function(){
+    var f=$("marcoForm"); f.classList.toggle("hidden");
+    if(!f.classList.contains("hidden")) $("mMin").focus();
+  });
+  $("applyMarco").addEventListener("click",applyMarco);
+  $("clearMarco").addEventListener("click",function(){ marco=null; done=0; render(); });
+  $("list").addEventListener("click",function(e){
+    var row=e.target.closest(".row.click"); if(!row)return;
+    var idx=+row.dataset.idx;
+    if(idx===done) done++;               // conclui o primeiro em aberto
+    else if(idx===done-1) done--;        // reabre o último concluído
+    else return;                         // demais linhas não respondem
+    applyProgress();
+  });
+})();
+</script>
+</body>
+</html>
