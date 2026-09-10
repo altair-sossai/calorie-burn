@@ -81,6 +81,15 @@
   .summary .cell b{font-family:"Oswald",sans-serif;font-weight:600;font-size:22px;font-variant-numeric:tabular-nums}
   .summary .cell b.goal{color:var(--red-hi)}
 
+  /* PROJEÇÃO */
+  .proj{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 13px;flex:0 0 auto}
+  .proj .mi{font-size:24px;color:var(--muted)}
+  .proj .ptext{display:flex;flex-direction:column;line-height:1.25}
+  .proj .ptext b{font-family:"Oswald",sans-serif;font-weight:600;font-size:17px;font-variant-numeric:tabular-nums}
+  .proj .ptext small{color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.02em}
+  .proj.ahead{border-color:var(--good)} .proj.ahead .mi,.proj.ahead .ptext b{color:var(--good)}
+  .proj.behind{border-color:var(--red)} .proj.behind .mi,.proj.behind .ptext b{color:var(--red-hi)}
+
   .listhead{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:2px 2px 0;display:flex;align-items:center;gap:6px}
   .list{flex:1 1 auto;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:2px}
   .row{
@@ -91,9 +100,7 @@
   .row .rowic{font-size:21px;color:var(--muted)}
   .row .mtext{font-family:"Oswald",sans-serif;font-weight:500;font-size:17px;font-variant-numeric:tabular-nums}
   .row .mtext small{display:block;font-family:"Barlow",sans-serif;font-weight:600;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-  .row .right{display:flex;align-items:center;gap:8px}
   .row .cal{font-family:"Oswald",sans-serif;font-weight:600;font-size:24px;font-variant-numeric:tabular-nums}
-  .row .check{display:none;color:var(--good);font-size:24px}
 
   .row.last{border-left:3px solid var(--red-hi)}
   .row.last .cal{color:var(--red-hi)}
@@ -105,11 +112,6 @@
   .row.click{cursor:pointer}
   .row.next{border-color:var(--red)}
   .row.next .rowic{color:var(--red)}
-  .row.done{border-color:var(--good);background:#10250f}
-  .row.done .cal{color:var(--good)}
-  .row.done .rowic{color:var(--good)}
-  .row.done .mtext small{color:var(--good)}
-  .row.done .check{display:inline-block}
 
   .marcoctl{flex:0 0 auto;display:flex;flex-direction:column;gap:9px;padding-top:2px}
   .btn.ghost{background:var(--surface-2);color:var(--text);border:1px solid var(--line);margin-top:0}
@@ -162,6 +164,10 @@
         <div class="cell"><small><span class="mi sm">bolt</span> Início</small><b id="sStart">300</b></div>
         <div class="cell r"><small><span class="mi sm">flag</span> Objetivo</small><b class="goal" id="sGoal">700</b></div>
       </div>
+      <div class="proj hidden" id="proj">
+        <span class="mi" id="projIcon">trending_up</span>
+        <div class="ptext"><b id="projMain">~700 cal no fim</b><small id="projSub">ritmo atual</small></div>
+      </div>
       <div class="listhead" id="listHead"><span class="mi sm">checklist</span> Metas a cada 5 min</div>
       <div class="list" id="list"></div>
       <div class="marcoctl">
@@ -193,7 +199,7 @@
   }
   function saveCfg(cfg){ try{localStorage.setItem(LS_KEY,JSON.stringify(cfg));}catch(e){} }
 
-  var cfg=null, marco=null, done=0, checkpoints=0;
+  var cfg=null, marco=null;
 
   function addRow(mark,cal,label,cls){
     var icon = cls.indexOf("marco")>-1 ? "push_pin" : (cls.indexOf("last")>-1 ? "sports_score" : "schedule");
@@ -202,17 +208,24 @@
     row.innerHTML=
       '<div class="min"><span class="mi rowic">'+icon+'</span>'+
         '<span class="mtext">min '+mark+'<small>'+label+'</small></span></div>'+
-      '<div class="right"><span class="mi check">check_circle</span>'+
-        '<span class="cal">'+Math.round(cal)+'</span></div>';
+      '<div class="cal">'+Math.round(cal)+'</div>';
     $("list").appendChild(row);
     return row;
   }
-  function applyProgress(){
-    var rows=$("list").querySelectorAll(".row.click");
-    rows.forEach(function(r,i){
-      r.classList.toggle("done", i<done);
-      r.classList.toggle("next", i===done);
-    });
+
+  // projeção: se mantiver o ritmo médio desde o início até o marco, onde termina?
+  function renderProjection(){
+    var p=$("proj");
+    if(!marco || marco.min<=0){ p.classList.add("hidden"); return; }
+    var pace=(marco.cal-cfg.inicio)/marco.min;                // cal/min alcançado até agora
+    var projetado=cfg.inicio+pace*cfg.tempo;                  // extrapolando até o fim da aula
+    var diff=projetado-cfg.objetivo;
+    var ahead=diff>=0;
+    p.className="proj "+(ahead?"ahead":"behind");
+    $("projIcon").textContent=ahead?"trending_up":"trending_down";
+    $("projMain").textContent="~"+Math.round(projetado)+" cal no fim";
+    $("projSub").textContent="ritmo "+(Math.round(pace*10)/10)+" cal/min · "+
+      (ahead?"+"+Math.round(diff):"−"+Math.round(-diff))+" vs meta";
   }
 
   function render(){
@@ -236,7 +249,7 @@
     var restante=cfg.objetivo-baseCal;
     var remTime=Math.max(1,cfg.tempo-baseMin);
     var n=Math.max(1,Math.ceil(remTime/cfg.intervalo));   // último intervalo pode ser menor
-    var prevMin=baseMin, prevCal=baseCal;
+    var prevMin=baseMin, prevCal=baseCal, first=null;
     for(var i=1;i<=n;i++){
       var mark=Math.min(baseMin+i*cfg.intervalo,cfg.tempo);
       // proporcional ao tempo: intervalos cheios iguais, último (curto) menor
@@ -245,12 +258,12 @@
       var delta=cal-prevCal;
       var isLast=(i===n);
       var r=addRow(mark,cal,(isLast?'fim · ':'')+dur+' min · +'+Math.round(delta)+' cal',"click"+(isLast?" last":""));
-      r.dataset.idx=(i-1);
+      r.dataset.min=mark; r.dataset.cal=cal;
+      if(!first)first=r;
       prevMin=mark; prevCal=cal;
     }
-    checkpoints=n;
-    if(done>checkpoints)done=checkpoints;
-    applyProgress();
+    if(first)first.classList.add("next");   // próxima meta em destaque
+    renderProjection();
   }
 
   function start(){
@@ -262,7 +275,7 @@
     };
     $("interval").value=cfg.intervalo;
     saveCfg({start:cfg.inicio,goal:cfg.objetivo,total:cfg.tempo,interval:cfg.intervalo});
-    marco=null; done=0;
+    marco=null;
     $("marcoForm").classList.add("hidden");
     render();
     $("form").classList.add("hidden");
@@ -270,13 +283,28 @@
     $("back").classList.remove("hidden");
   }
 
+  function setMarco(min,cal){
+    min=Math.min(Math.max(0,Math.round(min)),cfg.tempo);
+    marco={min:min,cal:cal};
+    render();
+  }
+
   function applyMarco(){
     var min=+$("mMin").value, cal=+$("mCal").value;
     if($("mMin").value===""||isNaN(min)||$("mCal").value===""||isNaN(cal)) return;
-    min=Math.min(Math.max(0,Math.round(min)),cfg.tempo);
-    marco={min:min,cal:cal}; done=0;
     $("marcoForm").classList.add("hidden");
-    render();
+    setMarco(min,cal);
+  }
+
+  // clicar numa meta -> pergunta as calorias reais (pré-preenchido com o alvo) -> vira marco
+  function concludeRow(row){
+    var min=+row.dataset.min, alvo=Math.round(+row.dataset.cal);
+    var v=prompt("Quantas calorias você está no minuto "+min+"?", alvo);
+    if(v===null) return;                       // cancelou
+    v=(""+v).replace(",",".");
+    var cal=parseFloat(v);
+    if(isNaN(cal)) return;
+    setMarco(min,cal);
   }
 
   loadCfg();
@@ -291,14 +319,10 @@
     if(!f.classList.contains("hidden")) $("mMin").focus();
   });
   $("applyMarco").addEventListener("click",applyMarco);
-  $("clearMarco").addEventListener("click",function(){ marco=null; done=0; render(); });
+  $("clearMarco").addEventListener("click",function(){ marco=null; render(); });
   $("list").addEventListener("click",function(e){
     var row=e.target.closest(".row.click"); if(!row)return;
-    var idx=+row.dataset.idx;
-    if(idx===done) done++;               // conclui o primeiro em aberto
-    else if(idx===done-1) done--;        // reabre o último concluído
-    else return;                         // demais linhas não respondem
-    applyProgress();
+    concludeRow(row);
   });
 })();
 </script>
