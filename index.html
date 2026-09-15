@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0d0d0d">
-<meta name="description" content="Calculadora de ritmo de calorias para bike indoor.">
+<meta name="description" content="Painel de ritmo de calorias para bike indoor Keiser, com leitura ao vivo por Bluetooth.">
 <title>Ritmo de Queima</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,315 +15,494 @@
     --ground:#0d0d0d; --surface:#161616; --surface-2:#1e1e1e;
     --line:#323232; --text:#f4f4f5; --muted:#9b9b9b;
     --red:#dc2626; --red-hi:#ff4444;
-    --good:#22c55e;
+    --good:#22c55e; --good-dim:#0f2a17;
+    --bad:#ef4444; --bad-dim:#2a1111;
+    --amber:#f59e0b; --amber-dim:#2a1e07; --gold:#fbbf24;
     --shadow:0 10px 30px rgba(0,0,0,.55);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; min-height:100dvh; overflow-y:auto;
+    margin:0; min-height:100dvh;
     background:radial-gradient(120% 80% at 50% -10%, #2a0b0d 0%, var(--ground) 55%);
     color:var(--text); font-family:"Barlow",system-ui,-apple-system,sans-serif;
     display:flex; align-items:center; justify-content:center;
     padding:calc(12px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom));
   }
   .phone{
-    width:100%; max-width:400px;
-    height:min(820px, calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+    width:100%; max-width:420px;
+    height:min(880px, calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
     background:var(--ground); border:1px solid var(--line); border-radius:28px;
     box-shadow:var(--shadow); overflow:hidden; display:flex; flex-direction:column; position:relative;
   }
-
   .mi{font-family:"Material Symbols Outlined";font-weight:normal;font-style:normal;line-height:1;
     letter-spacing:normal;text-transform:none;white-space:nowrap;direction:ltr;
     font-feature-settings:"liga";-webkit-font-smoothing:antialiased;display:inline-block;vertical-align:middle}
   .mi.sm{font-size:15px}
 
-  header{display:flex; align-items:center; justify-content:space-between; padding:16px 18px 12px; flex:0 0 auto}
-  .brand{display:flex; align-items:center; gap:9px}
-  .flame{width:30px;height:30px;border-radius:9px;background:linear-gradient(160deg,var(--red-hi),var(--red));display:grid;place-items:center;color:#fff;font-size:19px}
-  .brand h1{font-family:"Oswald",sans-serif;font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:16px;margin:0}
-  .iconbtn{background:var(--surface);color:var(--muted);border:1px solid var(--line);width:36px;height:36px;border-radius:10px;font-size:20px;cursor:pointer;display:grid;place-items:center}
-  .iconbtn:active{transform:scale(.94)}
-  .iconbtn:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 16px 10px;flex:0 0 auto}
+  .brand{display:flex;align-items:center;gap:8px;min-width:0}
+  .flame{width:28px;height:28px;border-radius:9px;background:linear-gradient(160deg,var(--red-hi),var(--red));display:grid;place-items:center;color:#fff;font-size:18px;flex:0 0 auto}
+  .brand h1{font-family:"Oswald",sans-serif;font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-size:14px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nav{display:flex;gap:6px;flex:0 0 auto}
+  .navbtn{background:var(--surface);color:var(--muted);border:1px solid var(--line);width:38px;height:36px;border-radius:10px;font-size:19px;cursor:pointer;display:grid;place-items:center}
+  .navbtn.active{color:#fff;background:linear-gradient(135deg,var(--red-hi),var(--red));border-color:transparent}
+  .navbtn[disabled]{opacity:.4;cursor:default}
+  .navbtn:active{transform:scale(.94)}
+  .navbtn:focus-visible{outline:2px solid var(--red);outline-offset:2px}
 
-  .stage{flex:1 1 auto; display:flex; flex-direction:column; padding:0 18px 18px; overflow:hidden}
+  .stage{flex:1 1 auto;display:flex;flex-direction:column;padding:0 18px 18px;overflow-y:auto}
 
-  /* FORM */
-  .form{display:flex;flex-direction:column;gap:14px}
-  .field{display:flex;flex-direction:column;gap:6px}
   label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px}
   input{
-    width:100%; background:var(--surface-2); border:1px solid var(--line); color:var(--text);
-    border-radius:11px; padding:12px 13px; font-family:"Oswald",sans-serif; font-size:20px; font-weight:500; font-variant-numeric:tabular-nums;
+    width:100%;background:var(--surface-2);border:1px solid var(--line);color:var(--text);
+    border-radius:11px;padding:12px 13px;font-family:"Oswald",sans-serif;font-size:20px;font-weight:500;font-variant-numeric:tabular-nums;
   }
   input:focus{outline:none;border-color:var(--red)}
-  .hintline{font-size:12px;color:var(--muted);margin-top:-2px}
+  .field{display:flex;flex-direction:column;gap:6px}
   .btn{
-    border:none; border-radius:13px; cursor:pointer; font-family:"Oswald",sans-serif; text-transform:uppercase;
-    letter-spacing:.05em; font-weight:600; font-size:16px; padding:15px; color:#fff;
-    background:linear-gradient(135deg,var(--red-hi),var(--red)); margin-top:4px;
+    border:none;border-radius:13px;cursor:pointer;font-family:"Oswald",sans-serif;text-transform:uppercase;
+    letter-spacing:.05em;font-weight:600;font-size:16px;padding:14px;color:#fff;
+    background:linear-gradient(135deg,var(--red-hi),var(--red));
     display:flex;align-items:center;justify-content:center;gap:8px;
   }
   .btn .mi{font-size:20px}
   .btn:active{transform:scale(.985)}
   .btn:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+  .btn.ghost{background:var(--surface-2);color:var(--text);border:1px solid var(--line)}
+  .btn[disabled]{opacity:.45;cursor:default}
 
-  /* RESULT */
-  .result{display:flex;flex-direction:column;height:100%;gap:12px}
-  .summary{
-    display:flex;justify-content:space-between;gap:10px;
-    background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;flex:0 0 auto;
-  }
-  .summary .cell{display:flex;flex-direction:column;gap:2px}
-  .summary .cell.r{text-align:right;align-items:flex-end}
-  .summary .cell small{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:5px}
-  .summary .cell b{font-family:"Oswald",sans-serif;font-weight:600;font-size:22px;font-variant-numeric:tabular-nums}
-  .summary .cell b.goal{color:var(--red-hi)}
+  .col{display:flex;flex-direction:column;gap:14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-  /* PROJEÇÃO */
-  .proj{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 13px;flex:0 0 auto}
-  .proj .mi{font-size:24px;color:var(--muted)}
-  .proj .ptext{display:flex;flex-direction:column;line-height:1.25}
-  .proj .ptext b{font-family:"Oswald",sans-serif;font-weight:600;font-size:17px;font-variant-numeric:tabular-nums}
-  .proj .ptext small{color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.02em}
-  .proj.ahead{border-color:var(--good)} .proj.ahead .mi,.proj.ahead .ptext b{color:var(--good)}
-  .proj.behind{border-color:var(--red)} .proj.behind .mi,.proj.behind .ptext b{color:var(--red-hi)}
+  .notice{background:var(--surface);border-left:3px solid var(--red);border-radius:10px;padding:11px 13px;font-size:13px;line-height:1.45;color:var(--muted)}
+  .notice b{color:var(--text)}
 
-  .listhead{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:2px 2px 0;display:flex;align-items:center;gap:6px}
-  .list{flex:1 1 auto;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:2px}
-  .row{
-    display:flex;align-items:center;justify-content:space-between;
-    background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 15px;
-  }
-  .row .min{display:flex;align-items:center;gap:11px}
-  .row .rowic{font-size:21px;color:var(--muted)}
-  .row .mtext{font-family:"Oswald",sans-serif;font-weight:500;font-size:17px;font-variant-numeric:tabular-nums}
-  .row .mtext small{display:block;font-family:"Barlow",sans-serif;font-weight:600;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-  .row .cal{font-family:"Oswald",sans-serif;font-weight:600;font-size:24px;font-variant-numeric:tabular-nums}
+  .conn{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px;display:flex;flex-direction:column;gap:11px}
+  .conn .hd{display:flex;align-items:center;justify-content:space-between}
+  .conn .hd .t{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:13px;display:flex;align-items:center;gap:7px}
+  .pill{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:4px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line);display:inline-flex;align-items:center;gap:5px}
+  .pill.on{color:var(--good);border-color:var(--good-dim);background:var(--good-dim)}
+  .biklist{display:flex;flex-direction:column;gap:8px;max-height:180px;overflow-y:auto}
+  .bik{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;cursor:pointer}
+  .bik.sel{border-color:var(--red);background:#2a1113}
+  .bik .l{display:flex;align-items:center;gap:10px}
+  .bik .l .mi{font-size:22px;color:var(--muted)}
+  .bik.sel .l .mi{color:var(--red-hi)}
+  .bik .name{font-family:"Oswald",sans-serif;font-weight:600;font-size:18px}
+  .bik .name small{display:block;font-family:"Barlow",sans-serif;font-weight:600;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .bik .r{text-align:right;font-family:"Oswald",sans-serif;font-variant-numeric:tabular-nums}
+  .bik .r b{font-size:20px;color:var(--red-hi)}
+  .bik .r small{display:block;font-size:11px;color:var(--muted)}
+  .bik.sel .selic{color:var(--red-hi)}
+  .emptyscan{font-size:13px;color:var(--muted);padding:6px 2px;line-height:1.4}
 
-  .row.last{border-left:3px solid var(--red-hi)}
-  .row.last .cal{color:var(--red-hi)}
-  .row.last .rowic{color:var(--red-hi)}
-  .row.marco{border-color:var(--red);background:#2a1113}
-  .row.marco .cal{color:var(--red-hi)}
-  .row.marco .rowic{color:var(--red-hi)}
-  .row.marco .mtext small{color:var(--red-hi)}
-  .row.click{cursor:pointer}
-  .row.next{border-color:var(--red)}
-  .row.next .rowic{color:var(--red)}
+  .clockbox{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;text-align:center}
+  .clockbox .cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .clock{font-family:"Oswald",sans-serif;font-weight:700;font-size:66px;line-height:1;margin:6px 0 2px;font-variant-numeric:tabular-nums;
+    background:linear-gradient(135deg,var(--red-hi),var(--red));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .clockctl{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px}
+  .running{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--good);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+  .running .dot{width:7px;height:7px;border-radius:50%;background:var(--good);animation:pulse 1s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  @media (prefers-reduced-motion:reduce){.running .dot{animation:none}*{transition:none!important}}
+  .running.paused{color:var(--muted)} .running.paused .dot{background:var(--muted);animation:none}
+  .adjust{display:flex;flex-direction:column;gap:8px}
+  .adjust .row{display:flex;align-items:center;gap:8px}
+  .adjust .lab{width:62px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;flex:0 0 auto}
+  .adjust .btns{display:flex;gap:8px;flex:1}
+  .abtn{flex:1;height:46px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-family:"Oswald",sans-serif;font-size:16px;font-weight:600;cursor:pointer;font-variant-numeric:tabular-nums}
+  .abtn:active{transform:scale(.95)}
+  .synckcal{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:14px}
+  .synckcal b{font-family:"Oswald",sans-serif;color:var(--text);font-size:18px;font-variant-numeric:tabular-nums}
 
-  .marcoctl{flex:0 0 auto;display:flex;flex-direction:column;gap:9px;padding-top:2px}
-  .btn.ghost{background:var(--surface-2);color:var(--text);border:1px solid var(--line);margin-top:0}
-  .marcoform{display:flex;gap:8px;align-items:flex-end}
-  .marcoform .field{flex:1}
-  .marcoform input{font-size:18px;padding:10px 11px}
-  .marcoform .btn{margin-top:0;flex:0 0 auto;padding:12px 15px;font-size:14px;align-self:stretch}
-  .linkbtn{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:"Barlow",sans-serif;align-self:flex-start;padding:0;display:flex;align-items:center;gap:5px}
+  .live{display:flex;flex-direction:column;gap:11px}
+  .verdict{border-radius:16px;padding:15px 16px;border:1px solid var(--line);background:var(--surface)}
+  .verdict .cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px}
+  .verdict .big{font-family:"Oswald",sans-serif;font-weight:700;font-size:52px;line-height:1;margin:5px 0 2px;font-variant-numeric:tabular-nums}
+  .verdict .sub{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.03em;font-size:15px;display:flex;align-items:center;gap:7px}
+  .verdict.ok{border-color:var(--good);background:var(--good-dim)} .verdict.ok .big,.verdict.ok .sub{color:var(--good)}
+  .verdict.warn{border-color:var(--amber);background:var(--amber-dim)} .verdict.warn .big,.verdict.warn .sub{color:var(--amber)}
+  .verdict.no{border-color:var(--bad);background:var(--bad-dim)} .verdict.no .big,.verdict.no .sub{color:var(--red-hi)}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 13px}
+  .box .cap{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:5px}
+  .box .v{font-family:"Oswald",sans-serif;font-weight:700;font-size:30px;line-height:1.05;margin-top:3px;font-variant-numeric:tabular-nums}
+  .box .v small{font-size:14px;color:var(--muted);font-weight:600}
+  .box .x{font-size:12px;color:var(--muted);margin-top:2px}
+  .box .x b{color:var(--text);font-variant-numeric:tabular-nums}
+
+  .track{position:relative;height:18px;background:var(--surface-2);border-radius:999px;border:1px solid var(--line);margin:22px 0 6px}
+  .fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px 0 0 999px;transition:width .5s ease,background .3s}
+  .fill.full{border-radius:999px}
+  .fill.ahead{background:linear-gradient(90deg,#16a34a,var(--good))}
+  .fill.on{background:linear-gradient(90deg,#d97706,var(--amber))}
+  .fill.behind{background:linear-gradient(90deg,#b91c1c,var(--bad))}
+  .over{position:absolute;top:0;bottom:0;background:linear-gradient(90deg,var(--gold),#fde68a);border-radius:0 999px 999px 0;transition:left .5s,width .5s}
+  .ideal{position:absolute;top:-3px;bottom:-3px;width:2px;background:#fff;border-radius:2px;transition:left .5s}
+  .ideal::after{content:"ideal";position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:600;color:var(--text);white-space:nowrap}
+  .goalmark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--gold);border-radius:2px;transition:left .5s}
+  .goalmark::after{content:"meta";position:absolute;bottom:-19px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:600;color:var(--gold);white-space:nowrap}
+  .progtop{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .progtop b{color:var(--text);font-family:"Oswald",sans-serif;font-size:17px;font-variant-numeric:tabular-nums}
+  .progtop .over-b{color:var(--gold)}
+
+  .bikepanel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px}
+  .bikepanel .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+  .bikepanel .hd .t{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .watts{text-align:center;margin-bottom:8px}
+  .watts .v{font-family:"Oswald",sans-serif;font-weight:700;font-size:60px;line-height:1;color:var(--red-hi);font-variant-numeric:tabular-nums}
+  .watts .u{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  .mrow{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;text-align:center}
+  .mrow .m .v{font-family:"Oswald",sans-serif;font-weight:600;font-size:26px;font-variant-numeric:tabular-nums}
+  .mrow .m .u{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .foot{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:9px;margin-top:9px}
+  .foot .fi{display:flex;align-items:center;gap:5px} .foot b{color:var(--text);font-family:"Oswald",sans-serif;font-variant-numeric:tabular-nums}
+  .nosig{color:var(--red-hi);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
+
+  .linkrow{display:flex;justify-content:center;gap:18px;padding-top:2px}
+  .linkbtn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:"Barlow",sans-serif;padding:0;display:flex;align-items:center;gap:5px}
   .linkbtn span:last-child{text-decoration:underline}
-  .linkbtn:focus-visible{outline:2px solid var(--red);outline-offset:2px}
 
   .hidden{display:none!important}
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 
 <div class="phone">
   <header>
-    <div class="brand"><div class="flame"><span class="mi">local_fire_department</span></div><h1>Ritmo de Queima</h1></div>
-    <button class="iconbtn hidden" id="back" title="Editar" aria-label="Voltar e editar"><span class="mi">arrow_back</span></button>
+    <div class="brand"><div class="flame"><span class="mi">local_fire_department</span></div><h1 id="title">Ritmo de Queima</h1></div>
+    <nav class="nav">
+      <button class="navbtn active" id="navSetup" title="Configurar" aria-label="Configurar"><span class="mi">tune</span></button>
+      <button class="navbtn" id="navSync" title="Relógio da aula" aria-label="Relógio da aula"><span class="mi">timer</span></button>
+      <button class="navbtn" id="navLive" title="Painel" aria-label="Painel" disabled><span class="mi">monitoring</span></button>
+    </nav>
   </header>
 
   <div class="stage">
-    <!-- FORM -->
-    <div class="form" id="form">
-      <div class="field">
-        <label for="start"><span class="mi sm">bolt</span> Caloria inicial</label>
-        <input id="start" type="number" inputmode="numeric" value="300">
+
+    <!-- 1. SETUP -->
+    <div class="col" id="setup">
+      <div class="grid2">
+        <div class="field"><label for="goal"><span class="mi sm">flag</span> Meta (kcal)</label><input id="goal" type="number" inputmode="numeric" value="700"></div>
+        <div class="field"><label for="total"><span class="mi sm">timer</span> Aula (min)</label><input id="total" type="number" inputmode="numeric" value="50"></div>
       </div>
-      <div class="field">
-        <label for="goal"><span class="mi sm">flag</span> Objetivo (calorias)</label>
-        <input id="goal" type="number" inputmode="numeric" value="700">
+
+      <div class="conn">
+        <div class="hd">
+          <span class="t"><span class="mi sm">bluetooth</span> Sua bike</span>
+          <span class="pill" id="connPill">desconectado</span>
+        </div>
+        <button class="btn ghost" id="scan"><span class="mi">bluetooth_searching</span> Buscar bikes</button>
+        <div class="biklist hidden" id="biklist"></div>
+        <div class="emptyscan hidden" id="scanHint">Comece a pedalar e sua bike aparece aqui. Toque nela para selecionar.</div>
       </div>
-      <div class="field">
-        <label for="total"><span class="mi sm">timer</span> Tempo da aula (min)</label>
-        <input id="total" type="number" inputmode="numeric" value="50">
-      </div>
-      <div class="field">
-        <label for="interval"><span class="mi sm">av_timer</span> Intervalo (min)</label>
-        <input id="interval" type="number" inputmode="numeric" min="5" max="10" value="5">
-        <span class="hintline">Entre 5 e 10 minutos.</span>
-      </div>
-      <button class="btn" id="startBtn"><span class="mi">play_arrow</span> Iniciar</button>
+
+      <div class="notice" id="notice" hidden></div>
+
+      <button class="btn" id="toSync"><span class="mi">arrow_forward</span> Continuar</button>
+      <button class="linkbtn" id="demo" style="align-self:center"><span class="mi sm">science</span><span>Simular bikes (teste)</span></button>
     </div>
 
-    <!-- RESULT -->
-    <div class="result hidden" id="result">
-      <div class="summary">
-        <div class="cell"><small><span class="mi sm">bolt</span> Início</small><b id="sStart">300</b></div>
-        <div class="cell r"><small><span class="mi sm">flag</span> Objetivo</small><b class="goal" id="sGoal">700</b></div>
+    <!-- 2. SYNC -->
+    <div class="col hidden" id="sync">
+      <div class="notice"><b>Relógio da aula.</b> A bike marca só o tempo pedalando — aqui você acerta o tempo <b>real</b> que falta da aula. Ajuste com os botões e dê play no minuto certo. Dá pra reajustar a qualquer momento sem perder a aula.</div>
+      <div class="clockbox">
+        <div class="cap">Tempo restante da aula</div>
+        <div class="clock" id="clock">50:00</div>
+        <div class="clockctl"><span class="running" id="runState"><span class="dot"></span><span id="runTxt">contando</span></span></div>
       </div>
-      <div class="proj hidden" id="proj">
-        <span class="mi" id="projIcon">trending_up</span>
-        <div class="ptext"><b id="projMain">~700 cal no fim</b><small id="projSub">ritmo atual</small></div>
+      <button class="btn ghost" id="pauseBtn"><span class="mi">pause</span><span>Pausar</span></button>
+      <div class="adjust">
+        <div class="row"><span class="lab">Minutos</span><div class="btns"><button class="abtn" data-t="-60">−1 min</button><button class="abtn" data-t="60">+1 min</button></div></div>
+        <div class="row"><span class="lab">Segundos</span><div class="btns"><button class="abtn" data-t="-10">−10 s</button><button class="abtn" data-t="-1">−1 s</button><button class="abtn" data-t="1">+1 s</button><button class="abtn" data-t="10">+10 s</button></div></div>
       </div>
-      <div class="listhead" id="listHead"><span class="mi sm">checklist</span> Metas a cada 5 min</div>
-      <div class="list" id="list"></div>
-      <div class="marcoctl">
-        <button class="btn ghost" id="addMarco"><span class="mi">push_pin</span> Registrar marco</button>
-        <div class="marcoform hidden" id="marcoForm">
-          <div class="field"><label for="mMin"><span class="mi sm">schedule</span> Minuto</label><input id="mMin" type="number" inputmode="numeric" placeholder="25"></div>
-          <div class="field"><label for="mCal"><span class="mi sm">bolt</span> Calorias</label><input id="mCal" type="number" inputmode="numeric" placeholder="400"></div>
-          <button class="btn" id="applyMarco" aria-label="Recalcular"><span class="mi">calculate</span></button>
+      <button class="linkbtn" id="reseed" style="align-self:center"><span class="mi sm">restart_alt</span><span>Redefinir para 50 min</span></button>
+      <div class="synckcal" id="syncKcal"></div>
+      <button class="btn" id="startBtn"><span class="mi">play_arrow</span> Iniciar aula</button>
+      <button class="btn hidden" id="toLiveBtn"><span class="mi">monitoring</span> Voltar ao painel</button>
+    </div>
+
+    <!-- 3. LIVE -->
+    <div class="live hidden" id="live">
+      <div class="verdict" id="verdict">
+        <div class="cap"><span class="mi sm">insights</span> No seu ritmo, no fim da aula</div>
+        <div class="big" id="projK">—</div>
+        <div class="sub"><span class="mi" id="verdIcon">trending_up</span><span id="verdTxt">—</span></div>
+      </div>
+
+      <div class="two">
+        <div class="box">
+          <div class="cap"><span class="mi sm">schedule</span> Falta de aula</div>
+          <div class="v" id="remTime">00:00</div>
+          <div class="x">faltam <b id="remK">0</b> kcal</div>
         </div>
-        <button class="linkbtn hidden" id="clearMarco"><span class="mi sm">close</span><span>Limpar marco</span></button>
+        <div class="box">
+          <div class="cap"><span class="mi sm">speed</span> Ritmo kcal/min</div>
+          <div class="v" id="paceNow">0<small></small></div>
+          <div class="x">precisa <b id="paceNeed">0</b>/min</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="progtop"><span>atual <b id="curK">0</b></span><span id="progRight">meta <b id="goalK">0</b></span></div>
+        <div class="track">
+          <div class="fill full ahead" id="fill" style="width:0%"></div>
+          <div class="over hidden" id="over" style="left:0%;width:0%"></div>
+          <div class="ideal" id="ideal" style="left:0%"></div>
+          <div class="goalmark hidden" id="goalMark" style="left:100%"></div>
+        </div>
+      </div>
+
+      <div class="bikepanel">
+        <div class="hd">
+          <span class="t"><span class="mi sm">directions_bike</span> <span id="bikeName">Bike</span></span>
+          <span class="nosig hidden" id="nosig"><span class="mi sm">sensors_off</span> sem sinal</span>
+        </div>
+        <div class="watts"><div class="v" id="watts">0</div><div class="u">watts</div></div>
+        <div class="mrow">
+          <div class="m"><div class="v" id="gear">0</div><div class="u">marcha</div></div>
+          <div class="m"><div class="v" id="rpm">0</div><div class="u">rpm</div></div>
+          <div class="m"><div class="v" id="kcal">0</div><div class="u">kcal</div></div>
+        </div>
+        <div class="foot">
+          <span class="fi"><span class="mi sm">straighten</span> <b id="dist">0.0</b> <span id="distU">km</span></span>
+          <span class="fi"><span class="mi sm">favorite</span> <b id="hr">—</b> bpm</span>
+          <span class="fi"><span class="mi sm">timer</span> <b id="bikeTime">0:00</b> pedal</span>
+        </div>
       </div>
     </div>
+
   </div>
 </div>
 
 <script>
 (function(){
   var $=function(id){return document.getElementById(id)};
-  var LS_KEY="ritmoQueimaCfg";
+  var KEISER_ID=0x0102, STALE_MS=4000, LS_KEY="ritmoQueimaCfg";
 
-  function loadCfg(){
+  var S={
+    goal:700, total:50,
+    chosen:null,
+    live:{kcal:0,watts:0,rpm:0,gear:0,dist:0,distUnit:'km',hr:0,min:0,sec:0,lastSeen:0},
+    manualKcal:0,
+    alignEnd:0, alignPaused:false, alignRemMs:0,   // relógio da aula (idle e rodando)
+    startedAt:null, startKcal:0
+  };
+  var detected=new Map();
+  var alignTimer=null, demoTimer=null, view="setup";
+
+  /* ---------- utils ---------- */
+  function fmtClock(sec){ if(sec<0)sec=0; sec=Math.floor(sec); var m=Math.floor(sec/60),s=sec%60; return m+":"+(s<10?"0":"")+s; }
+  function hasBike(){ return S.chosen!=null && (Date.now()-S.live.lastSeen)<STALE_MS; }
+  function curKcal(){ return hasBike()? S.live.kcal : S.manualKcal; }
+
+  /* ---------- navegação (não reinicia nada) ---------- */
+  function nav(v){
+    if(v==="live" && !S.startedAt) v="sync";     // sem aula não há painel
+    view=v;
+    $("setup").classList.toggle("hidden",v!=="setup");
+    $("sync").classList.toggle("hidden",v!=="sync");
+    $("live").classList.toggle("hidden",v!=="live");
+    $("navSetup").classList.toggle("active",v==="setup");
+    $("navSync").classList.toggle("active",v==="sync");
+    $("navLive").classList.toggle("active",v==="live");
+    $("title").textContent = v==="sync"?"Relógio da aula":(v==="setup"?"Configurar":"Ritmo de Queima");
+    if(v==="sync"){ prepSync(); if(!alignTimer)alignTimer=setInterval(tickAlign,250); }
+    else if(alignTimer){ clearInterval(alignTimer); alignTimer=null; }
+    if(v==="live") renderLive();
+  }
+
+  /* ---------- config storage ---------- */
+  function loadCfg(){ try{ var c=JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(!c)return;
+    if(c.goal!=null){$("goal").value=c.goal;S.goal=c.goal;} if(c.total!=null){$("total").value=c.total;S.total=c.total;} if(c.chosen!=null)S.chosen=c.chosen; }catch(e){} }
+  function saveCfg(){ try{ localStorage.setItem(LS_KEY,JSON.stringify({goal:S.goal,total:S.total,chosen:S.chosen})); }catch(e){} }
+
+  /* ---------- Bluetooth ---------- */
+  function parseKeiser(dv){
+    if(dv.byteLength<17) return null;
+    var distRaw=dv.getUint16(14,true);
+    return { realtime:dv.getUint8(2)===0, id:dv.getUint8(3),
+      rpm:dv.getUint16(4,true)/10, hr:dv.getUint16(6,true)/10, watts:dv.getUint16(8,true),
+      kcal:dv.getUint16(10,true), min:dv.getUint8(12), sec:dv.getUint8(13),
+      dist:(distRaw&0x7fff)/10, distUnit:(distRaw&0x8000)?'km':'mi', gear:dv.getUint8(16) };
+  }
+  function ingest(data){
+    if(!data||!data.realtime) return;
+    detected.set(data.id,{data:data,lastSeen:Date.now()});
+    if(view==="setup") renderDetected();
+    if(S.chosen===data.id){
+      S.live={kcal:data.kcal,watts:data.watts,rpm:data.rpm,gear:data.gear,dist:data.dist,
+        distUnit:data.distUnit,hr:data.hr,min:data.min,sec:data.sec,lastSeen:Date.now()};
+    }
+  }
+  function onAdvertisement(ev){ var dv=ev.manufacturerData && ev.manufacturerData.get(KEISER_ID); if(dv) ingest(parseKeiser(dv)); }
+  async function startScan(){
+    var bt=navigator.bluetooth;
+    if(!bt) return showNotice(noBleHelp());
+    $("scanHint").classList.remove("hidden");
     try{
-      var c=JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(!c)return;
-      if(c.start!=null)$("start").value=c.start;
-      if(c.goal!=null)$("goal").value=c.goal;
-      if(c.total!=null)$("total").value=c.total;
-      if(c.interval!=null)$("interval").value=c.interval;
-    }catch(e){}
+      if(bt.requestLEScan){
+        await bt.requestLEScan({ filters:[{manufacturerData:[{companyIdentifier:KEISER_ID}]}], keepRepeatedDevices:true });
+        bt.addEventListener('advertisementreceived',onAdvertisement);
+        setConn(false,"ouvindo bikes"); $("scan").innerHTML='<span class="mi">bluetooth_searching</span> Ouvindo…'; $("scan").disabled=true;
+      }else{
+        var device=await bt.requestDevice({ filters:[{namePrefix:'M3'}], optionalManufacturerData:[KEISER_ID] });
+        if(!device.watchAdvertisements) return showNotice(noBleHelp());
+        device.addEventListener('advertisementreceived',onAdvertisement);
+        await device.watchAdvertisements();
+        setConn(false,"ouvindo bike"); $("scan").innerHTML='<span class="mi">add</span> Adicionar outra';
+      }
+    }catch(e){ if(e.name==='NotFoundError') return; showNotice(noBleHelp()); }
   }
-  function saveCfg(cfg){ try{localStorage.setItem(LS_KEY,JSON.stringify(cfg));}catch(e){} }
-
-  var cfg=null, marco=null;
-
-  function addRow(mark,cal,label,cls){
-    var icon = cls.indexOf("marco")>-1 ? "push_pin" : (cls.indexOf("last")>-1 ? "sports_score" : "schedule");
-    var row=document.createElement("div");
-    row.className="row "+cls;
-    row.innerHTML=
-      '<div class="min"><span class="mi rowic">'+icon+'</span>'+
-        '<span class="mtext">min '+mark+'<small>'+label+'</small></span></div>'+
-      '<div class="cal">'+Math.round(cal)+'</div>';
-    $("list").appendChild(row);
-    return row;
+  function noBleHelp(){
+    return 'Este navegador não tem <b>Web Bluetooth</b>. No <b>iPhone</b>, abra este app no navegador <b>Bluefy</b> (grátis na App Store) — Safari e Chrome do iOS não suportam. No <b>Android/PC</b>, use o <b>Chrome</b>. A página precisa estar em <b>HTTPS</b>. Sem bike, use o modo manual normalmente.';
   }
-
-  // projeção: se mantiver o ritmo médio desde o início até o marco, onde termina?
-  function renderProjection(){
-    var p=$("proj");
-    if(!marco || marco.min<=0){ p.classList.add("hidden"); return; }
-    var pace=(marco.cal-cfg.inicio)/marco.min;                // cal/min alcançado até agora
-    var projetado=cfg.inicio+pace*cfg.tempo;                  // extrapolando até o fim da aula
-    var diff=projetado-cfg.objetivo;
-    var ahead=diff>=0;
-    p.className="proj "+(ahead?"ahead":"behind");
-    $("projIcon").textContent=ahead?"trending_up":"trending_down";
-    $("projMain").textContent="~"+Math.round(projetado)+" cal no fim";
-    $("projSub").textContent="ritmo "+(Math.round(pace*10)/10)+" cal/min · "+
-      (ahead?"+"+Math.round(diff):"−"+Math.round(-diff))+" vs meta";
+  function showNotice(html){ var n=$("notice"); n.innerHTML=html; n.hidden=false; }
+  function setConn(on,txt){ var p=$("connPill"); p.textContent=txt||(on?"conectado":"desconectado"); p.classList.toggle("on",!!on); }
+  function renderDetected(){
+    var list=$("biklist");
+    var ids=[...detected.keys()].sort(function(a,b){return a-b;});
+    if(!ids.length){ list.classList.add("hidden"); $("scanHint").classList.remove("hidden"); return; }
+    list.classList.remove("hidden"); $("scanHint").classList.add("hidden");
+    list.innerHTML="";
+    ids.forEach(function(id){
+      var d=detected.get(id).data, sel=(S.chosen===id);
+      var el=document.createElement("div"); el.className="bik"+(sel?" sel":"");
+      el.innerHTML='<div class="l"><span class="mi">directions_bike</span>'+
+        '<span class="name">Bike '+id+'<small>'+Math.round(d.rpm)+' rpm</small></span></div>'+
+        '<div class="r"><b>'+d.watts+'</b><small>'+d.kcal+' kcal</small></div>'+
+        (sel?'<span class="mi selic">check_circle</span>':'');
+      el.addEventListener('click',function(){ S.chosen=id; saveCfg(); setConn(true,"Bike "+id); renderDetected(); });
+      list.appendChild(el);
+    });
   }
 
-  function render(){
-    $("sStart").textContent=Math.round(cfg.inicio);
-    $("sGoal").textContent=Math.round(cfg.objetivo);
-    $("list").innerHTML="";
-
-    // ponto de partida do cálculo: o marco (se houver) ou o início da aula
-    var baseMin = marco ? marco.min : 0;
-    var baseCal = marco ? marco.cal : cfg.inicio;
-
-    if(marco){
-      $("listHead").innerHTML='<span class="mi sm">push_pin</span> Recalculado a partir do min '+marco.min;
-      addRow(marco.min,marco.cal,"marco registrado","marco");
-      $("clearMarco").classList.remove("hidden");
-    }else{
-      $("listHead").innerHTML='<span class="mi sm">checklist</span> Metas a cada '+cfg.intervalo+' min';
-      $("clearMarco").classList.add("hidden");
-    }
-
-    var restante=cfg.objetivo-baseCal;
-    var remTime=Math.max(1,cfg.tempo-baseMin);
-    var n=Math.max(1,Math.ceil(remTime/cfg.intervalo));   // último intervalo pode ser menor
-    var prevMin=baseMin, prevCal=baseCal, first=null;
-    for(var i=1;i<=n;i++){
-      var mark=Math.min(baseMin+i*cfg.intervalo,cfg.tempo);
-      // proporcional ao tempo: intervalos cheios iguais, último (curto) menor
-      var cal=(i===n)?cfg.objetivo:baseCal+restante*((mark-baseMin)/remTime);
-      var dur=mark-prevMin;
-      var delta=cal-prevCal;
-      var isLast=(i===n);
-      var r=addRow(mark,cal,(isLast?'fim · ':'')+dur+' min · +'+Math.round(delta)+' cal',"click"+(isLast?" last":""));
-      r.dataset.min=mark; r.dataset.cal=cal;
-      if(!first)first=r;
-      prevMin=mark; prevCal=cal;
-    }
-    if(first)first.classList.add("next");   // próxima meta em destaque
-    renderProjection();
+  /* ---------- relógio da aula ---------- */
+  function getRemMs(){ return S.alignPaused?S.alignRemMs:Math.max(0,S.alignEnd-Date.now()); }
+  function setRemMs(ms){ if(ms<0)ms=0; if(S.alignPaused)S.alignRemMs=ms; else S.alignEnd=Date.now()+ms; }
+  function seedClock(){ S.alignPaused=false; S.alignEnd=Date.now()+S.total*60000+999; }  // (re)define a partir do tempo configurado
+  // zera os milissegundos (piso do segundo) e aplica o passo; +999 faz o número segurar o segundo cheio
+  function nudge(sec){ setRemMs((Math.floor(getRemMs()/1000)+sec)*1000+999); tickAlign(); }
+  function tickAlign(){ $("clock").textContent=fmtClock(getRemMs()/1000);
+    $("syncKcal").innerHTML = (S.chosen!=null
+      ? '<span class="mi sm">bolt</span> '+(hasBike()?"Bike "+S.chosen+": ":"")+'<b>'+Math.round(curKcal())+'</b> kcal agora'
+      : '<span class="mi sm">info</span> Sem bike — você ajusta kcal na mão no painel');
+  }
+  function setPause(p){
+    if(p&&!S.alignPaused)S.alignRemMs=Math.floor(Math.max(0,S.alignEnd-Date.now())/1000)*1000+999;  // zera ms ao pausar
+    else if(!p&&S.alignPaused)S.alignEnd=Date.now()+S.alignRemMs;
+    S.alignPaused=p;
+    $("runState").classList.toggle("paused",p); $("runTxt").textContent=p?"pausado":"contando";
+    $("pauseBtn").innerHTML=p?'<span class="mi">play_arrow</span><span>Retomar</span>':'<span class="mi">pause</span><span>Pausar</span>';
+    tickAlign();
+  }
+  function prepSync(){
+    S.goal=+$("goal").value||0; S.total=Math.max(1,+$("total").value||1); saveCfg();
+    if(!S.alignEnd) seedClock();
+    $("reseed").querySelector("span:last-child").textContent="Redefinir para "+S.total+" min";
+    var running=!!S.startedAt;
+    $("pauseBtn").classList.toggle("hidden",running);   // sem pausa com a aula em andamento
+    $("startBtn").classList.toggle("hidden",running);
+    $("toLiveBtn").classList.toggle("hidden",!running);
+    tickAlign();
+  }
+  function startClass(){
+    if(S.alignPaused) setPause(false);       // garante o relógio correndo
+    S.startedAt=Date.now(); S.startKcal=curKcal();
+    $("navLive").disabled=false;
+    nav("live");
   }
 
-  function start(){
-    cfg={
-      inicio:+$("start").value||0,
-      objetivo:+$("goal").value||0,
-      tempo:Math.max(1,+$("total").value||1),
-      intervalo:Math.min(10,Math.max(5,+$("interval").value||5))
-    };
-    $("interval").value=cfg.intervalo;
-    saveCfg({start:cfg.inicio,goal:cfg.objetivo,total:cfg.tempo,interval:cfg.intervalo});
-    marco=null;
-    $("marcoForm").classList.add("hidden");
-    render();
-    $("form").classList.add("hidden");
-    $("result").classList.remove("hidden");
-    $("back").classList.remove("hidden");
+  /* ---------- LIVE ---------- */
+  function renderLive(){
+    var rem=Math.max(0,getRemMs()/60000);
+    var el=S.startedAt? (Date.now()-S.startedAt)/60000 : 0;
+    var cur=curKcal(), remK=Math.max(0,S.goal-cur);
+
+    var avgPace= el>0.05 ? (cur-S.startKcal)/el : 0;
+    var projected= cur + avgPace*rem;
+    // fração pelo TEMPO TOTAL da aula (config) menos o que falta -> ideal certo mesmo entrando no meio
+    var totalMin=Math.max(S.total, rem, 0.05);
+    var frac=Math.max(0,Math.min(1,(totalMin-rem)/totalMin));
+    var shouldBe=S.goal*frac;                      // ideal linear no tempo: onde você deveria estar agora
+    var delta=cur-shouldBe;                        // + adiantado / - atrasado
+
+    // status: meta batida / adiantado / no ritmo / atrasado
+    var status = cur>=S.goal ? "met" : (delta>3?"ahead":(delta<-3?"behind":"on"));
+    var vClass = status==="behind" ? "no" : (status==="on" ? "warn" : "ok");
+    $("verdict").className="verdict "+vClass;
+    $("projK").textContent="~"+Math.round(projected)+" kcal";
+    $("verdIcon").textContent = status==="behind" ? "trending_down" : (status==="on" ? "trending_flat" : "trending_up");
+    $("verdTxt").textContent =
+      status==="met"   ? "Meta batida +"+Math.round(cur-S.goal) :
+      status==="ahead" ? "Adiantado +"+Math.round(delta) :
+      status==="behind"? "Atrasado −"+Math.round(-delta) : "No ritmo";
+
+    $("remTime").textContent=fmtClock(rem*60);
+    $("remK").textContent=Math.round(remK);
+    $("paceNow").innerHTML=(Math.round(avgPace*10)/10)+'<small> agora</small>';
+    $("paceNeed").textContent= rem>0.05 ? (Math.round(remK/rem*10)/10) : 0;
+
+    // barra no eixo do TEMPO: esquerda = início da aula, direita = fim
+    // ideal = fração do tempo; preenchimento = fração das kcal (cur/meta), travado em 100%
+    var fillCls = status==="behind" ? "behind" : (status==="on" ? "on" : "ahead");
+    var fill=$("fill");
+    fill.className="fill full "+fillCls;
+    fill.style.width=Math.max(0,Math.min(100,cur/Math.max(S.goal,1)*100))+"%";
+    $("ideal").style.left=(frac*100)+"%";
+    $("over").classList.add("hidden");
+    $("goalMark").classList.add("hidden");
+    $("curK").textContent=Math.round(cur);
+    $("progRight").innerHTML='meta <b>'+Math.round(S.goal)+'</b>';
+
+    var live=hasBike();
+    $("nosig").classList.toggle("hidden",live|| S.chosen===null);
+    $("bikeName").textContent = S.chosen!=null? "Bike "+S.chosen : "Sem bike (manual)";
+    var L=S.live;
+    $("watts").textContent=live?L.watts:'—';
+    $("gear").textContent=live?L.gear:'—';
+    $("rpm").textContent=live?Math.round(L.rpm):'—';
+    $("kcal").textContent=Math.round(cur);
+    $("dist").textContent=live?L.dist.toFixed(1):'—'; $("distU").textContent=live?L.distUnit:'';
+    $("hr").textContent=(live&&L.hr)?Math.round(L.hr):'—';
+    $("bikeTime").textContent=live?(L.min+":"+String(L.sec).padStart(2,'0')):'—';
   }
 
-  function setMarco(min,cal){
-    min=Math.min(Math.max(0,Math.round(min)),cfg.tempo);
-    marco={min:min,cal:cal};
-    render();
-  }
-
-  function applyMarco(){
-    var min=+$("mMin").value, cal=+$("mCal").value;
-    if($("mMin").value===""||isNaN(min)||$("mCal").value===""||isNaN(cal)) return;
-    $("marcoForm").classList.add("hidden");
-    setMarco(min,cal);
-  }
-
-  // clicar numa meta -> pergunta as calorias reais (pré-preenchido com o alvo) -> vira marco
-  function concludeRow(row){
-    var min=+row.dataset.min, alvo=Math.round(+row.dataset.cal);
-    var v=prompt("Quantas calorias você está no minuto "+min+"?", alvo);
-    if(v===null) return;                       // cancelou
-    v=(""+v).replace(",",".");
-    var cal=parseFloat(v);
-    if(isNaN(cal)) return;
-    setMarco(min,cal);
-  }
-
+  /* ---------- eventos ---------- */
   loadCfg();
-  $("startBtn").addEventListener("click",start);
-  $("back").addEventListener("click",function(){
-    $("result").classList.add("hidden");
-    $("form").classList.remove("hidden");
-    $("back").classList.add("hidden");
+  $("scan").addEventListener("click",startScan);
+  $("toSync").addEventListener("click",function(){ S.goal=+$("goal").value||0; S.total=Math.max(1,+$("total").value||1); saveCfg(); nav("sync"); });
+  $("navSetup").addEventListener("click",function(){ nav("setup"); });
+  $("navSync").addEventListener("click",function(){ nav("sync"); });
+  $("navLive").addEventListener("click",function(){ if(S.startedAt) nav("live"); });
+  $("pauseBtn").addEventListener("click",function(){ setPause(!S.alignPaused); });
+  document.querySelectorAll(".abtn").forEach(function(b){ b.addEventListener("click",function(){ nudge(+b.dataset.t); }); });
+  $("reseed").addEventListener("click",function(){ S.total=Math.max(1,+$("total").value||1); seedClock(); tickAlign(); });
+  $("startBtn").addEventListener("click",startClass);
+  $("toLiveBtn").addEventListener("click",function(){ nav("live"); });
+  $("goal").addEventListener("input",function(){ S.goal=+this.value||0; saveCfg(); if(S.startedAt)renderLive(); });
+  $("total").addEventListener("input",function(){ S.total=Math.max(1,+this.value||1); saveCfg(); });
+
+  /* ---------- Simulação ---------- */
+  $("demo").addEventListener("click",function(){
+    if(demoTimer){ clearInterval(demoTimer); demoTimer=null; $("demo").querySelector("span:last-child").textContent="Simular bikes (teste)"; return; }
+    var sims=[3,7,9].map(function(id){return {id:id,t:Math.floor(Math.random()*600),gear:10+id,kcal:280+id*10,dist:0};});
+    demoTimer=setInterval(function(){
+      sims.forEach(function(s){
+        s.t+=0.65; var rpm=72+Math.sin(Date.now()/3000+s.id)*12; s.kcal+=rpm*2.3*0.0003+0.02; s.dist+=0.65/3600*30;
+        ingest({ realtime:true, id:s.id, rpm:rpm, hr:s.id===9?138+Math.sin(Date.now()/5000)*6:0,
+          watts:Math.round(rpm*2.3+s.gear*4), kcal:Math.round(s.kcal), min:Math.floor(s.t/60), sec:Math.floor(s.t%60),
+          dist:s.dist, distUnit:'km', gear:s.gear });
+      });
+    },650);
+    $("demo").querySelector("span:last-child").textContent="Parar simulação";
+    setConn(false,"simulando");
   });
-  $("addMarco").addEventListener("click",function(){
-    var f=$("marcoForm"); f.classList.toggle("hidden");
-    if(!f.classList.contains("hidden")) $("mMin").focus();
-  });
-  $("applyMarco").addEventListener("click",applyMarco);
-  $("clearMarco").addEventListener("click",function(){ marco=null; render(); });
-  $("list").addEventListener("click",function(e){
-    var row=e.target.closest(".row.click"); if(!row)return;
-    concludeRow(row);
-  });
+
+  // loop de atualização do painel (independe de novos anúncios)
+  setInterval(function(){ if(view==="live") renderLive(); },1000);
 })();
 </script>
 </body>
