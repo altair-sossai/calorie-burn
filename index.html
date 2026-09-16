@@ -165,6 +165,7 @@
   .linkbtn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:"Barlow",sans-serif;padding:0;display:flex;align-items:center;gap:5px}
   .linkbtn span:last-child{text-decoration:underline}
 
+  .app-version{flex:0 0 auto;text-align:center;padding:8px 16px 10px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
   .hidden{display:none!important}
 </style>
 </head>
@@ -275,6 +276,7 @@
     </div>
 
   </div>
+  <footer class="app-version">Versão 1.0.1</footer>
 </div>
 
 <script>
@@ -387,15 +389,10 @@
         return;
       }
 
-      // Bluefy/iOS e outros bridges: seleciona um dispositivo e passa a ouvir seus advertisements.
-      // Evita depender somente do nome "M3", pois o iOS pode não expor o localName da mesma forma.
-      var options={
-        filters:[{manufacturerData:[{companyIdentifier:KEISER_ID}]}],
-        optionalManufacturerData:[KEISER_ID]
-      };
+      // Busca sem filtro de nome/fabricante desde a primeira tentativa.
+      // optionalManufacturerData autoriza a leitura dos anúncios; não filtra a lista.
       var device, requestError;
       var attempts=[
-        options,
         {acceptAllDevices:true,optionalManufacturerData:[KEISER_ID]},
         {acceptAllDevices:true}
       ];
