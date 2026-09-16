@@ -197,7 +197,7 @@
         </div>
         <button class="btn ghost" id="scan"><span class="mi">bluetooth_searching</span> Buscar bikes</button>
         <div class="biklist hidden" id="biklist"></div>
-        <div class="emptyscan hidden" id="scanHint">Comece a pedalar e sua bike aparece aqui. Toque nela para selecionar.</div>
+        <div class="emptyscan hidden" id="scanHint">Selecione M3 na janela Bluetooth e continue pedalando. O número da bike aparecerá aqui ao receber os dados; toque nele para selecionar.</div>
       </div>
 
       <div class="notice" id="notice" hidden></div>
@@ -276,7 +276,7 @@
     </div>
 
   </div>
-  <footer class="app-version">Versão 1.0.1</footer>
+  <footer class="app-version">Versão 1.0.2</footer>
 </div>
 
 <script>
@@ -389,12 +389,12 @@
         return;
       }
 
-      // Busca sem filtro de nome/fabricante desde a primeira tentativa.
+      // Filtra pelo nome anunciado M3, sem depender do filtro de fabricante no Bluefy.
       // optionalManufacturerData autoriza a leitura dos anúncios; não filtra a lista.
       var device, requestError;
       var attempts=[
-        {acceptAllDevices:true,optionalManufacturerData:[KEISER_ID]},
-        {acceptAllDevices:true}
+        {filters:[{namePrefix:'M3'}],optionalManufacturerData:[KEISER_ID]},
+        {filters:[{namePrefix:'M3'}]}
       ];
       for(var i=0;i<attempts.length&&!device;i++){
         try{
@@ -403,9 +403,9 @@
           requestError=e;
           // NotFoundError é o cancelamento normal do seletor pelo usuário.
           if(e && e.name==='NotFoundError') throw e;
-          // Bluefy pode retornar somente o código "2" quando não aceita um filtro.
-          // Nesse caso tentamos opções progressivamente mais simples.
-          if(i===attempts.length-1) throw e;
+          // Se optionalManufacturerData não for aceito, tenta sem ele, mantendo M3.
+          var unsupported=e && (e.name==='TypeError' || e.name==='NotSupportedError');
+          if(!unsupported || i===attempts.length-1) throw e;
         }
       }
       if(!device) throw requestError||new Error('Nenhuma bike foi selecionada.');
