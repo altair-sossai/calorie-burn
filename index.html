@@ -337,24 +337,67 @@
         distUnit:data.distUnit,hr:data.hr,min:data.min,sec:data.sec,lastSeen:Date.now()};
     }
   }
-  function onAdvertisement(ev){ var dv=ev.manufacturerData && ev.manufacturerData.get(KEISER_ID); if(dv) ingest(parseKeiser(dv)); }
+  function onAdvertisement(ev){
+    var md=ev && ev.manufacturerData, dv=null;
+    if(md){
+      if(typeof md.get==='function') dv=md.get(KEISER_ID);
+      // Alguns bridges de Web Bluetooth no iOS expõem manufacturerData como objeto.
+      if(!dv) dv=md[KEISER_ID] || md[String(KEISER_ID)] || md['0x0102'];
+    }
+    if(dv){
+      if(dv instanceof ArrayBuffer) dv=new DataView(dv);
+      else if(ArrayBuffer.isView(dv) && !(dv instanceof DataView)) dv=new DataView(dv.buffer,dv.byteOffset,dv.byteLength);
+      ingest(parseKeiser(dv));
+    }
+  }
+  function bleError(e){
+    var name=e&&e.name?e.name:'Erro';
+    var msg=e&&e.message?e.message:String(e||'Erro desconhecido');
+    console.error('Bluetooth:',e);
+    showNotice('<b>Erro Bluetooth ('+name+')</b><br>'+msg+'<br><br>'+noBleHelp());
+  }
   async function startScan(){
     var bt=navigator.bluetooth;
     if(!bt) return showNotice(noBleHelp());
+    $("notice").hidden=true;
     $("scanHint").classList.remove("hidden");
     try{
-      if(bt.requestLEScan){
-        await bt.requestLEScan({ filters:[{manufacturerData:[{companyIdentifier:KEISER_ID}]}], keepRepeatedDevices:true });
+      // Chromium: varredura contínua de todos os broadcasts Keiser.
+      if(typeof bt.requestLEScan==='function'){
+        bt.removeEventListener('advertisementreceived',onAdvertisement);
         bt.addEventListener('advertisementreceived',onAdvertisement);
+        await bt.requestLEScan({ filters:[{manufacturerData:[{companyIdentifier:KEISER_ID}]}], keepRepeatedDevices:true });
         setConn(false,"ouvindo bikes"); $("scan").innerHTML='<span class="mi">bluetooth_searching</span> Ouvindo…'; $("scan").disabled=true;
-      }else{
-        var device=await bt.requestDevice({ filters:[{namePrefix:'M3'}], optionalManufacturerData:[KEISER_ID] });
-        if(!device.watchAdvertisements) return showNotice(noBleHelp());
-        device.addEventListener('advertisementreceived',onAdvertisement);
-        await device.watchAdvertisements();
-        setConn(false,"ouvindo bike"); $("scan").innerHTML='<span class="mi">add</span> Adicionar outra';
+        return;
       }
-    }catch(e){ if(e.name==='NotFoundError') return; showNotice(noBleHelp()); }
+
+      // Bluefy/iOS e outros bridges: seleciona um dispositivo e passa a ouvir seus advertisements.
+      // Evita depender somente do nome "M3", pois o iOS pode não expor o localName da mesma forma.
+      var options={
+        filters:[{manufacturerData:[{companyIdentifier:KEISER_ID}]}],
+        optionalManufacturerData:[KEISER_ID]
+      };
+      var device;
+      try{
+        device=await bt.requestDevice(options);
+      }catch(e){
+        // Compatibilidade com implementações que ainda não aceitam manufacturerData em filters.
+        if(e && (e.name==='TypeError' || e.name==='NotSupportedError')){
+          device=await bt.requestDevice({acceptAllDevices:true,optionalManufacturerData:[KEISER_ID]});
+        }else throw e;
+      }
+      if(!device) return;
+      if(typeof device.watchAdvertisements!=='function')
+        throw new Error('O navegador selecionou a bike, mas não oferece watchAdvertisements().');
+
+      device.removeEventListener('advertisementreceived',onAdvertisement);
+      device.addEventListener('advertisementreceived',onAdvertisement);
+      await device.watchAdvertisements();
+      setConn(false,"ouvindo bike"); $("scan").innerHTML='<span class="mi">add</span> Adicionar outra';
+    }catch(e){
+      if(e && e.name==='NotFoundError') return;
+      bleError(e);
+    }
   }
   function noBleHelp(){
     return 'Este navegador não tem <b>Web Bluetooth</b>. No <b>iPhone</b>, abra este app no navegador <b>Bluefy</b> (grátis na App Store) — Safari e Chrome do iOS não suportam. No <b>Android/PC</b>, use o <b>Chrome</b>. A página precisa estar em <b>HTTPS</b>. Sem bike, use o modo manual normalmente.';
