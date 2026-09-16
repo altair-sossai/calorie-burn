@@ -337,24 +337,40 @@
         distUnit:data.distUnit,hr:data.hr,min:data.min,sec:data.sec,lastSeen:Date.now()};
     }
   }
+  function asDataView(value){
+    if(!value) return null;
+    if(value instanceof ArrayBuffer) return new DataView(value);
+    if(ArrayBuffer.isView(value)) return new DataView(value.buffer,value.byteOffset,value.byteLength);
+    return null;
+  }
+  function manufacturerPayload(ev){
+    var md=ev && (ev.manufacturerData || (ev.advertisementData && ev.advertisementData.manufacturerData));
+    if(!md) return null;
+
+    var value=null;
+    // Chrome segue a especificação e entrega um Map. O Bluefy/iOS pode entregar o DataView diretamente.
+    if(typeof md.get==='function') value=md.get(KEISER_ID);
+    if(!value) value=md[KEISER_ID] || md[String(KEISER_ID)] || md['0x0102'];
+    if(!value) value=md;
+
+    var dv=asDataView(value);
+    // Alguns bridges incluem os dois bytes do company identifier antes do payload.
+    if(dv && dv.byteLength>=19 && dv.getUint16(0,true)===KEISER_ID)
+      dv=new DataView(dv.buffer,dv.byteOffset+2,dv.byteLength-2);
+    return dv;
+  }
   function onAdvertisement(ev){
-    var md=ev && ev.manufacturerData, dv=null;
-    if(md){
-      if(typeof md.get==='function') dv=md.get(KEISER_ID);
-      // Alguns bridges de Web Bluetooth no iOS expõem manufacturerData como objeto.
-      if(!dv) dv=md[KEISER_ID] || md[String(KEISER_ID)] || md['0x0102'];
-    }
-    if(dv){
-      if(dv instanceof ArrayBuffer) dv=new DataView(dv);
-      else if(ArrayBuffer.isView(dv) && !(dv instanceof DataView)) dv=new DataView(dv.buffer,dv.byteOffset,dv.byteLength);
-      ingest(parseKeiser(dv));
-    }
+    var dv=manufacturerPayload(ev);
+    if(dv) ingest(parseKeiser(dv));
   }
   function bleError(e){
     var name=e&&e.name?e.name:'Erro';
     var msg=e&&e.message?e.message:String(e||'Erro desconhecido');
     console.error('Bluetooth:',e);
-    showNotice('<b>Erro Bluetooth ('+name+')</b><br>'+msg+'<br><br>'+noBleHelp());
+    var help=navigator.bluetooth
+      ? 'O Web Bluetooth está ativo, mas a busca falhou. No iPhone, confirme que a página foi aberta dentro do <b>Bluefy</b>, que o Bluetooth está ligado e que a bike está sendo pedalada.'
+      : noBleHelp();
+    showNotice('<b>Erro Bluetooth ('+name+')</b><br>'+msg+'<br><br>'+help);
   }
   async function startScan(){
     var bt=navigator.bluetooth;
@@ -377,16 +393,25 @@
         filters:[{manufacturerData:[{companyIdentifier:KEISER_ID}]}],
         optionalManufacturerData:[KEISER_ID]
       };
-      var device;
-      try{
-        device=await bt.requestDevice(options);
-      }catch(e){
-        // Compatibilidade com implementações que ainda não aceitam manufacturerData em filters.
-        if(e && (e.name==='TypeError' || e.name==='NotSupportedError')){
-          device=await bt.requestDevice({acceptAllDevices:true,optionalManufacturerData:[KEISER_ID]});
-        }else throw e;
+      var device, requestError;
+      var attempts=[
+        options,
+        {acceptAllDevices:true,optionalManufacturerData:[KEISER_ID]},
+        {acceptAllDevices:true}
+      ];
+      for(var i=0;i<attempts.length&&!device;i++){
+        try{
+          device=await bt.requestDevice(attempts[i]);
+        }catch(e){
+          requestError=e;
+          // NotFoundError é o cancelamento normal do seletor pelo usuário.
+          if(e && e.name==='NotFoundError') throw e;
+          // Bluefy pode retornar somente o código "2" quando não aceita um filtro.
+          // Nesse caso tentamos opções progressivamente mais simples.
+          if(i===attempts.length-1) throw e;
+        }
       }
-      if(!device) return;
+      if(!device) throw requestError||new Error('Nenhuma bike foi selecionada.');
       if(typeof device.watchAdvertisements!=='function')
         throw new Error('O navegador selecionou a bike, mas não oferece watchAdvertisements().');
 
