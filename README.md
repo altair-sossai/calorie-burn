@@ -6,15 +6,21 @@ Painel de ritmo de calorias para bike indoor **Keiser M3**, com leitura ao vivo 
 
 ## O que faz
 
-Dada uma **meta de calorias** e o **tempo da aula**, o app responde continuamente à pergunta central: **"no meu ritmo, eu bato a meta ou não?"** — projetando o total ao fim da aula e comparando com o objetivo.
+Dada uma **kcal inicial** (o que já está no mostrador da bike), uma **meta de calorias**, o **tempo da aula** e um **intervalo** em minutos, o app quebra a aula em blocos (ex. a cada 8 min) e mostra, pra cada um, a meta cumulativa e quanto falta fazer naquele bloco especificamente.
 
-### Fluxo (3 telas)
+A confirmação é **manual**: de olho no relógio, você toca no marco atual (ex. minuto 8) quando chega nele — só dá pra confirmar o próximo da fila, em sequência, e só dá pra desfazer o último confirmado (pra corrigir um toque errado). A cada confirmação, o app recalcula os blocos seguintes com base na kcal real naquele momento: se você está adiantado, o que falta pros próximos blocos diminui; se está atrasado, aumenta. Ao superar a meta final, a lista sempre acrescenta um próximo nível de +50 kcal, pra continuar acompanhando quem passar do objetivo.
 
-1. **Preparar** — meta (kcal) e tempo da aula; conectar e escolher a sua bike na lista das que estão transmitindo.
-2. **Sincronizar a aula** — o relógio da bike marca só o tempo *pedalando*, então aqui você acerta o tempo **real** que falta da aula (±min/±seg, pausar/retomar) e dá play no minuto certo.
-3. **Painel ao vivo** — projeção "bate/não bate a meta", ritmo atual vs. necessário, barra de progresso com a linha ideal, e todos os dados da bike (watts, marcha, rpm, kcal, distância, FC, tempo de pedal).
+### Cadastro de bikes
 
-Durante a aula, com a bike conectada, você **não digita nada**. Há um modo **manual** de backup (botão "Ajustar kcal") para quando não houver Bluetooth.
+As bikes só entram na lista **via Bluetooth**: você busca, toca em "+" na bike detectada e ela fica salva (pelo número que aparece no console dela, ex. "Bike 7"). Não dá pra cadastrar manualmente nem editar — só excluir. Existe sempre uma **Bike simulada** fixa como última opção da lista, útil pra testar o app sem uma bike de verdade por perto.
+
+### Fluxo (3 telas, no menu do topo)
+
+1. **Configurar** — kcal inicial, meta (kcal), tempo da aula e intervalo (min); mostra a bike selecionada (trocar leva pra aba Bikes) e o botão "Iniciar aula".
+2. **Bikes** — busca via Bluetooth, adiciona as detectadas, exclui as que não usa mais, e escolhe qual está em uso agora.
+3. **Painel ao vivo** — um cartão por marco (minuto final em destaque, meta cumulativa, quanto falta no bloco), que você toca pra confirmar conforme chega nos minutos; e só o essencial da bike: nome e a kcal que ela está lendo agora.
+
+Durante a aula, com a bike conectada, você não digita nada — só confirma os marcos de minuto. Se uma leitura de kcal vier zerada (glitch do Bluetooth), o app mantém o último valor válido em vez de mostrar zero.
 
 ## Leitura da bike (Bluetooth)
 
@@ -25,9 +31,8 @@ A Keiser M Series **transmite** os dados por BLE (broadcast), sem pareamento. O 
 - **Android / PC:** Google **Chrome** ou Edge — funciona nativamente.
 - **iPhone / iPad:** Safari e Chrome do iOS **não** têm Web Bluetooth. Use o navegador **Bluefy** (grátis na App Store), que adiciona suporte a Web Bluetooth no iOS.
 - **Requer HTTPS** (ou localhost) — qualquer host estático com HTTPS serve.
-- Sem Bluetooth disponível, o app funciona no **modo manual**.
 
-Para testar a interface sem a bike, use o botão **Simular bikes (teste)** na tela inicial.
+Para testar a interface sem uma bike por perto, escolha a **Bike simulada** (sempre disponível, última opção na aba Bikes).
 
 ## Como rodar localmente
 
