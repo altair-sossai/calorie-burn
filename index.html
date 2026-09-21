@@ -118,8 +118,10 @@
   .ivl .bar>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--red-hi),var(--red));transition:width .4s}
   .ivl.done .bar>span{background:linear-gradient(90deg,#16a34a,var(--good))}
   .ivl .goals{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-  .ivl .goal{font-family:"Oswald",sans-serif;font-size:14px;color:var(--text);white-space:nowrap;font-variant-numeric:tabular-nums}
-  .ivl .delta{font-size:11px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .ivl .goal{font-family:"Oswald",sans-serif;font-weight:700;font-size:26px;line-height:1;color:var(--text);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .ivl .delta{font-family:"Oswald",sans-serif;font-weight:600;font-size:20px;line-height:1;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .ivl.now .delta{color:var(--text)}
+  .ivl.done .delta{color:var(--good)}
   .ivl .check{font-size:22px;color:var(--line);flex:0 0 auto}
   .ivl.done .check{color:var(--good)}
 
