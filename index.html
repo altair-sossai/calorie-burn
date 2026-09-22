@@ -132,6 +132,7 @@
   .kcalnow .v{font-family:"Oswald",sans-serif;font-weight:700;font-size:60px;line-height:1;color:var(--red-hi);font-variant-numeric:tabular-nums}
   .kcalnow .u{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
   .nosig{color:var(--red-hi);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
+  .bikepanel .reconnect{width:100%;margin-top:11px;padding:11px;font-size:14px}
 
   .linkbtn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:"Barlow",sans-serif;padding:0;display:flex;align-items:center;gap:5px}
   .linkbtn span:last-child{text-decoration:underline}
@@ -200,19 +201,23 @@
           <span class="nosig hidden" id="nosig"><span class="mi sm">sensors_off</span> sem sinal</span>
         </div>
         <div class="kcalnow"><div class="v" id="kcal">0</div><div class="u">kcal agora</div></div>
+        <button class="btn ghost reconnect hidden" id="reconnect"><span class="mi">bluetooth_searching</span> Reconectar bike</button>
       </div>
 
       <div class="intervals" id="intervals"></div>
     </div>
 
   </div>
-  <footer class="app-version">Versão 3.0.0</footer>
+  <footer class="app-version">Versão 3.1.0</footer>
 </div>
 
 <script>
 (function(){
   var $=function(id){return document.getElementById(id)};
-  var KEISER_ID=0x0102, STALE_MS=4000, LS_KEY="ritmoQueimaCfg", LS_BIKES="ritmoQueimaBikes", SIM_ID=-1;
+  var KEISER_ID=0x0102, STALE_MS=4000, LS_KEY="ritmoQueimaCfg", LS_BIKES="ritmoQueimaBikes", LS_CLASS="ritmoQueimaAula", SIM_ID=-1;
+  var RESUME_MS=10000;        // intervalo mínimo entre tentativas automáticas de retomar a escuta Bluetooth
+  var CLASS_GRACE_MIN=60;     // por quanto tempo depois do fim previsto a aula ainda é restaurada num refresh
+  var LE_OPTS={ filters:[{manufacturerData:[{companyIdentifier:KEISER_ID}]}], keepRepeatedDevices:true };
 
   var S={
     goal:700, total:45, interval:8, startKcal:0,
@@ -225,6 +230,9 @@
   var detected=new Map();     // bikeId -> { data, lastSeen }
   var view="setup", simState=null;
   var confirmedIdx=0, history=[];   // marcos confirmados manualmente na aula (sequencial) + snapshots pra desfazer
+  var kcalRestored=false, savedKcal=null;  // kcal veio do localStorage (refresh) — a próxima leitura real substitui sem o filtro de glitch
+  var watched=new Map();      // device.id -> {device, ctrl}: bikes autorizadas cujos anúncios estamos escutando
+  var leScan=null, lastResume=0, resuming=false, wakeLock=null, wakePending=false;
 
   /* ---------- utils ---------- */
   function hasBike(){ return S.chosen!=null && (Date.now()-S.live.lastSeen)<STALE_MS; }
@@ -269,6 +277,27 @@
   }
   function saveCfg(){ try{ localStorage.setItem(LS_KEY,JSON.stringify({goal:S.goal,total:S.total,interval:S.interval,startKcal:S.startKcal,chosen:S.chosen})); }catch(e){} }
   function saveBikes(){ try{ localStorage.setItem(LS_BIKES,JSON.stringify(bikes)); }catch(e){} }
+  // aula em andamento: sobrevive a refresh/fechar a aba (marcos confirmados, histórico pra desfazer e última kcal)
+  function classActive(){ return !!S.startedAt && (Date.now()-S.startedAt) < (S.total+CLASS_GRACE_MIN)*60000; }
+  function saveClass(){
+    if(!S.startedAt) return;
+    savedKcal=S.live.kcal;
+    try{ localStorage.setItem(LS_CLASS,JSON.stringify({startedAt:S.startedAt,intervals:intervals,confirmedIdx:confirmedIdx,history:history,kcal:S.live.kcal})); }catch(e){}
+  }
+  function loadClass(){
+    try{
+      var c=JSON.parse(localStorage.getItem(LS_CLASS)||"null");
+      if(!c || !c.startedAt || !Array.isArray(c.intervals) || !c.intervals.length) return false;
+      if((Date.now()-c.startedAt) > (S.total+CLASS_GRACE_MIN)*60000) return false;
+      S.startedAt=c.startedAt;
+      intervals=c.intervals;
+      confirmedIdx=Math.max(0,Math.min(intervals.length,c.confirmedIdx|0));
+      history=Array.isArray(c.history)?c.history:[];
+      S.live.kcal=+c.kcal||0; savedKcal=S.live.kcal;
+      kcalRestored=S.live.kcal>0;
+      return true;
+    }catch(e){ return false; }
+  }
 
   /* ---------- cadastro de bikes (só via Bluetooth; excluir é a única edição) ---------- */
   function renderBikeLine(){
@@ -294,6 +323,8 @@
     list.appendChild(bikeRow(SIM_ID,false));
   }
   function selectBike(id){
+    // trocou de bike: zera a leitura, senão o filtro de glitch descartaria a kcal menor da bike nova
+    if(id!==S.chosen){ S.live={kcal:0,watts:0,rpm:0,gear:0,dist:0,distUnit:'km',hr:0,min:0,sec:0,lastSeen:0}; kcalRestored=false; }
     S.chosen=id; saveCfg();
     if(isSim(id)) simState=null;
     renderBikeList(); renderDetected(); renderBikeLine(); updateConnPill();
@@ -325,7 +356,9 @@
     detected.set(data.id,{data:safeData,lastSeen:Date.now()});
     if(view==="bikes") renderDetected();
     if(S.chosen===data.id){
-      var liveKcal=guardKcal(S.live.kcal>0?S.live.kcal:null, data.kcal);
+      var liveKcal;
+      if(kcalRestored){ liveKcal = data.kcal>0 ? data.kcal : S.live.kcal; if(data.kcal>0) kcalRestored=false; }
+      else liveKcal=guardKcal(S.live.kcal>0?S.live.kcal:null, data.kcal);
       S.live={kcal:liveKcal,watts:data.watts,rpm:data.rpm,gear:data.gear,dist:data.dist,
         distUnit:data.distUnit,hr:data.hr,min:data.min,sec:data.sec,lastSeen:Date.now()};
     }
@@ -372,7 +405,67 @@
     var help=navigator.bluetooth
       ? 'O Web Bluetooth está ativo, mas a busca falhou. No iPhone, confirme que a página foi aberta dentro do <b>Bluefy</b>, que o Bluetooth está ligado e que a bike está sendo pedalada.'
       : noBleHelp();
+    if(view!=="bikes") nav("bikes");   // o aviso fica na aba Bikes (ex. erro ao tocar em "Reconectar" no painel)
     showNotice('<b>Erro Bluetooth ('+name+')</b><br>'+msg+'<br><br>'+help);
+  }
+
+  /* ---------- escuta e reconexão ---------- */
+  // Depois de travar a tela, voltar do background ou dar refresh, o iOS/Bluefy costuma parar de entregar
+  // anúncios sem avisar. Por isso a escuta é sempre cancelada e reiniciada, e as bikes já autorizadas
+  // (bluetooth.getDevices) são retomadas sem precisar abrir o seletor de novo.
+  function stopWatch(entry){
+    if(entry.ctrl) try{ entry.ctrl.abort(); }catch(e){}
+    if(typeof entry.device.unwatchAdvertisements==='function') try{ entry.device.unwatchAdvertisements(); }catch(e){}
+  }
+  function watchDevice(device){
+    var prev=watched.get(device.id);
+    if(prev) stopWatch(prev);
+    var ctrl=typeof AbortController==='function'?new AbortController():null;
+    watched.set(device.id,{device:device,ctrl:ctrl});
+    device.removeEventListener('advertisementreceived',onAdvertisement);
+    device.addEventListener('advertisementreceived',onAdvertisement);
+    return ctrl ? device.watchAdvertisements({signal:ctrl.signal}) : device.watchAdvertisements();
+  }
+  async function resumeBluetooth(force){
+    var bt=navigator.bluetooth;
+    if(!bt || resuming || document.visibilityState==='hidden') return;
+    var now=Date.now();
+    if(!force && now-lastResume<RESUME_MS) return;
+    lastResume=now; resuming=true;
+    try{
+      var devices=new Map();
+      watched.forEach(function(w,id){ devices.set(id,w.device); });
+      if(typeof bt.getDevices==='function'){
+        try{ (await bt.getDevices()||[]).forEach(function(d){ devices.set(d.id,d); }); }catch(e){ console.warn('Bluetooth: getDevices falhou',e); }
+      }
+      var list=Array.from(devices.values());
+      for(var i=0;i<list.length;i++){
+        if(typeof list[i].watchAdvertisements!=='function') continue;
+        try{ await watchDevice(list[i]); }
+        catch(e){ console.warn('Bluetooth: não foi possível retomar a escuta',e); }
+      }
+      if(leScan && !leScan.active){
+        try{ leScan=await bt.requestLEScan(LE_OPTS); }catch(e){ console.warn('Bluetooth: não foi possível retomar a varredura',e); }
+      }
+    }finally{ resuming=false; }
+    if(view==="bikes") updateConnPill();
+  }
+  // no refresh/fechamento, libera a escuta pra que a página nova consiga assumir a bike na hora
+  function releaseBluetooth(){
+    watched.forEach(stopWatch);
+    if(leScan && leScan.active) try{ leScan.stop(); }catch(e){}
+  }
+  function needsReconnect(){ return S.chosen!=null && !isSim(S.chosen) && !hasBike(); }
+
+  // mantém a tela acesa durante a aula (evita o bloqueio automático, que derruba o Bluetooth no iPhone)
+  async function keepAwake(){
+    if(wakeLock || wakePending || !classActive() || !navigator.wakeLock || document.visibilityState!=='visible') return;
+    wakePending=true;
+    try{
+      wakeLock=await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release',function(){ wakeLock=null; });
+    }catch(e){}
+    finally{ wakePending=false; }
   }
   async function startScan(){
     var bt=navigator.bluetooth;
@@ -384,7 +477,8 @@
       if(typeof bt.requestLEScan==='function'){
         bt.removeEventListener('advertisementreceived',onAdvertisement);
         bt.addEventListener('advertisementreceived',onAdvertisement);
-        await bt.requestLEScan({ filters:[{manufacturerData:[{companyIdentifier:KEISER_ID}]}], keepRepeatedDevices:true });
+        if(leScan && leScan.active) try{ leScan.stop(); }catch(e){}
+        leScan=await bt.requestLEScan(LE_OPTS);
         setConn(true,"ouvindo bikes"); $("scan").innerHTML='<span class="mi">bluetooth_searching</span> Ouvindo…'; $("scan").disabled=true;
         return;
       }
@@ -412,9 +506,7 @@
       if(typeof device.watchAdvertisements!=='function')
         throw new Error('O navegador selecionou a bike, mas não oferece watchAdvertisements().');
 
-      device.removeEventListener('advertisementreceived',onAdvertisement);
-      device.addEventListener('advertisementreceived',onAdvertisement);
-      await device.watchAdvertisements();
+      await watchDevice(device);
       setConn(true,"ouvindo bike"); $("scan").innerHTML='<span class="mi">add</span> Adicionar outra';
     }catch(e){
       if(e && e.name==='NotFoundError') return;
@@ -429,7 +521,7 @@
   function updateConnPill(){
     if(isSim(S.chosen)){ setConn(true,"simulando"); return; }
     if(hasBike()){ setConn(true,bikeName(S.chosen)); return; }
-    if($("scan").disabled){ setConn(true,"ouvindo bikes"); return; }
+    if(watched.size || (leScan && leScan.active)){ setConn(true,"ouvindo bikes"); return; }
     setConn(false,"desconectado");
   }
   function renderDetected(){
@@ -490,6 +582,7 @@
     history.push(JSON.parse(JSON.stringify(intervals)));
     recalcFuture(i,curKcal());
     confirmedIdx=i+1;
+    saveClass();
     renderIntervals();
   }
   function unconfirmInterval(i){
@@ -497,6 +590,7 @@
     var snap=history.pop();
     if(snap) intervals=snap;
     confirmedIdx=i;
+    saveClass();
     renderIntervals();
   }
   // além da meta: mostra sempre o próximo nível de 50 em 50 kcal, independente dos marcos manuais
@@ -563,6 +657,8 @@
     if(isSim(S.chosen)){ simState=null; S.live.kcal=S.startKcal; }
     else if(!hasBike()) S.live.kcal=S.startKcal;
     buildIntervals();
+    saveClass();
+    keepAwake();
     $("navLive").disabled=false;
     nav("live");
   }
@@ -572,6 +668,7 @@
     renderIntervals();
     var live=hasBike();
     $("nosig").classList.toggle("hidden",live|| S.chosen===null);
+    $("reconnect").classList.toggle("hidden",live|| S.chosen===null || isSim(S.chosen));
     $("bikeName").textContent = S.chosen!=null? bikeName(S.chosen) : "Sem bike";
     $("kcal").textContent=Math.round(curKcal());
   }
@@ -579,7 +676,7 @@
   /* ---------- bike simulada (sempre disponível, sem Bluetooth) ---------- */
   function simTick(){
     if(!isSim(S.chosen)) return;
-    if(!simState) simState={kcal:S.startKcal||0,t:0,gear:14};
+    if(!simState) simState={kcal:S.live.kcal||S.startKcal||0,t:0,gear:14};
     simState.t+=1;
     var rpm=74+Math.sin(Date.now()/3000)*10;
     simState.kcal+=rpm*2.3*0.00045+0.03;
@@ -592,7 +689,10 @@
   /* ---------- eventos ---------- */
   loadCfg();
   renderBikeLine();
+  if(loadClass()){ $("navLive").disabled=false; nav("live"); }
+  resumeBluetooth(true);
   $("scan").addEventListener("click",startScan);
+  $("reconnect").addEventListener("click",startScan);
   $("goBikes").addEventListener("click",function(){ nav("bikes"); });
   $("navSetup").addEventListener("click",function(){ nav("setup"); });
   $("navBikes").addEventListener("click",function(){ nav("bikes"); });
@@ -603,9 +703,21 @@
   $("startKcal").addEventListener("input",function(){ S.startKcal=Math.max(0,+this.value||0); saveCfg(); });
   $("interval").addEventListener("input",function(){ S.interval=Math.max(1,+this.value||1); saveCfg(); });
 
-  // laço de atualização: painel ao vivo, bike simulada e status de conexão na tela de bikes
+  // voltou pra tela (desbloqueou o celular / trocou de app): retoma a escuta na hora
+  document.addEventListener("visibilitychange",function(){
+    if(document.visibilityState==="visible"){ resumeBluetooth(true); keepAwake(); }
+    else saveClass();
+  });
+  window.addEventListener("pageshow",function(ev){ if(ev.persisted){ resumeBluetooth(true); keepAwake(); } });
+  window.addEventListener("pagehide",function(){ saveClass(); releaseBluetooth(); });
+  // alguns navegadores só concedem o wake lock depois de um toque
+  document.addEventListener("click",keepAwake);
+
+  // laço de atualização: painel ao vivo, bike simulada, reconexão automática e status de conexão
   setInterval(function(){
     simTick();
+    if(needsReconnect()) resumeBluetooth(false);
+    if(S.startedAt && S.live.kcal!==savedKcal) saveClass();
     if(view==="live") renderLive();
     else if(view==="bikes") updateConnPill();
   },1000);

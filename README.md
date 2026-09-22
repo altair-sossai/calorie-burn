@@ -34,6 +34,16 @@ A Keiser M Series **transmite** os dados por BLE (broadcast), sem pareamento. O 
 
 Para testar a interface sem uma bike por perto, escolha a **Bike simulada** (sempre disponível, última opção na aba Bikes).
 
+### Reconexão (tela travada / refresh)
+
+No iPhone (Bluefy), travar a tela ou recarregar a página costuma interromper a escuta dos anúncios sem nenhum aviso. Para reduzir isso:
+
+- **A aula sobrevive a refresh**: marcos confirmados, histórico pra desfazer e última kcal ficam salvos no `localStorage`, e o app volta direto pro painel (até 60 min depois do fim previsto da aula).
+- **Retomada automática**: ao abrir a página, ao voltar pra tela (`visibilitychange`/`pageshow`) e a cada 10 s sem sinal, o app cancela e reinicia a escuta das bikes já autorizadas — incluindo as que o navegador ainda lembra via `bluetooth.getDevices()`, sem abrir o seletor.
+- **Botão "Reconectar bike"** no painel ao vivo quando está sem sinal: abre o seletor Bluetooth direto dali, sem ter que ir até a aba Bikes.
+- **Tela acesa durante a aula** (Screen Wake Lock, onde o navegador suportar), pra evitar o bloqueio automático.
+- No refresh/fechamento (`pagehide`), a escuta é liberada pra que a página nova consiga assumir a bike na hora.
+
 ## Como rodar localmente
 
 ```bash
