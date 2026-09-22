@@ -476,10 +476,12 @@
     var fromT=intervals[fromIdx].end;
     var remainingT=Math.max(0.0001,S.total-fromT);
     var prevGoal=actualKcal;
+    // se já passou da meta, os próximos marcos ficam na kcal atual (nunca uma meta abaixo do que já foi feito)
+    var remainingKcal=Math.max(0,S.goal-actualKcal);
     for(var j=fromIdx+1;j<intervals.length;j++){
       var iv=intervals[j];
       var frac=Math.max(0,Math.min(1,(iv.end-fromT)/remainingT));
-      var goal=actualKcal+(S.goal-actualKcal)*frac;
+      var goal=actualKcal+remainingKcal*frac;
       iv.baseline=prevGoal; iv.goal=goal; prevGoal=goal;
     }
   }
@@ -520,7 +522,8 @@
       if(done) frac=1;
       var el=document.createElement("div");
       el.className="ivl"+(done?" done":"")+(isNow?" now":"")+(!done&&!isNow?" locked":"")+((canConfirm||canUnconfirm)?" clickable":"");
-      var delta=Math.max(0,Math.round(iv.goal-iv.baseline));
+      // diferença entre os valores já arredondados, pra bater exatamente com as metas mostradas nos cartões
+      var delta=Math.max(0,Math.round(iv.goal)-Math.round(iv.baseline));
       el.innerHTML=
         '<div class="num">'+iv.end+'<small>min</small></div>'+
         '<div class="info">'+
