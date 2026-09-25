@@ -131,6 +131,10 @@
   .kcalnow{text-align:center}
   .kcalnow .v{font-family:"Oswald",sans-serif;font-weight:700;font-size:60px;line-height:1;color:var(--red-hi);font-variant-numeric:tabular-nums}
   .kcalnow .u{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .stat{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 8px 8px;text-align:center}
+  .stat .v{font-family:"Oswald",sans-serif;font-weight:700;font-size:44px;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+  .stat .u{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:4px}
   .nosig{color:var(--red-hi);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
   .bikepanel .reconnect{width:100%;margin-top:11px;padding:11px;font-size:14px}
 
@@ -201,6 +205,10 @@
           <span class="nosig hidden" id="nosig"><span class="mi sm">sensors_off</span> sem sinal</span>
         </div>
         <div class="kcalnow"><div class="v" id="kcal">0</div><div class="u">kcal agora</div></div>
+        <div class="stats">
+          <div class="stat"><div class="v" id="rpm">–</div><div class="u"><span class="mi sm">autorenew</span> rpm</div></div>
+          <div class="stat"><div class="v" id="watts">–</div><div class="u"><span class="mi sm">bolt</span> watts</div></div>
+        </div>
         <button class="btn ghost reconnect hidden" id="reconnect"><span class="mi">bluetooth_searching</span> Reconectar bike</button>
       </div>
 
@@ -208,7 +216,7 @@
     </div>
 
   </div>
-  <footer class="app-version">Versão 3.1.0</footer>
+  <footer class="app-version">Versão 3.2.0</footer>
 </div>
 
 <script>
@@ -671,6 +679,9 @@
     $("reconnect").classList.toggle("hidden",live|| S.chosen===null || isSim(S.chosen));
     $("bikeName").textContent = S.chosen!=null? bikeName(S.chosen) : "Sem bike";
     $("kcal").textContent=Math.round(curKcal());
+    // giro e watts são instantâneos: sem sinal, mostra traço em vez de um valor velho
+    $("rpm").textContent = live ? Math.round(S.live.rpm) : "–";
+    $("watts").textContent = live ? Math.round(S.live.watts) : "–";
   }
 
   /* ---------- bike simulada (sempre disponível, sem Bluetooth) ---------- */
