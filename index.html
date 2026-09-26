@@ -116,12 +116,11 @@
   .ivl.done .num{color:var(--good)}
   .ivl.done .num small{color:var(--good)}
   .ivl .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
-  .ivl .bar{height:8px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+  .ivl .bar{height:8px;border-radius:999px;background:var(--surface-2);position:relative}
   .ivl .bar>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--red-hi),var(--red));transition:width .4s}
   .ivl.done .bar>span{background:linear-gradient(90deg,#16a34a,var(--good))}
-  /* barra de tempo de referência: onde você deveria estar no bloco, pelo relógio da aula */
-  .ivl .tbar{height:4px;border-radius:999px;background:var(--surface-2);overflow:hidden}
-  .ivl .tbar>span{display:block;height:100%;border-radius:999px;background:#d4d4d8}
+  /* risco de referência: onde você deveria estar no bloco, pelo relógio da aula */
+  .ivl .bar>.tick{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;border-radius:2px;background:#fff;box-shadow:0 0 0 1.5px var(--surface)}
   .ivl .goals{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
   .ivl .goal{font-family:"Oswald",sans-serif;font-weight:700;font-size:26px;line-height:1;color:var(--text);white-space:nowrap;font-variant-numeric:tabular-nums}
   .ivl .delta{font-family:"Oswald",sans-serif;font-weight:600;font-size:20px;line-height:1;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -143,6 +142,18 @@
   .stat .u{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:4px}
   .nosig{color:var(--red-hi);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
   .bikepanel .reconnect{width:100%;margin-top:11px;padding:11px;font-size:14px}
+
+  /* rodapé fixo da aula: previsão de kcal no fim, no ritmo médio da aula até agora */
+  .forecast{flex:0 0 auto;display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 13px}
+  .forecast .fi{font-size:30px;color:var(--gold);font-variation-settings:"FILL" 1}
+  .forecast .ft{flex:1;min-width:0}
+  .forecast .l{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+  .forecast .n{font-family:"Oswald",sans-serif;font-weight:700;font-size:30px;line-height:1.05;font-variant-numeric:tabular-nums}
+  .forecast .n small{font-size:15px;font-weight:600;color:var(--muted)}
+  .forecast .fdiff{font-family:"Oswald",sans-serif;font-weight:600;font-size:15px;padding:5px 10px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap;text-align:center;line-height:1.15}
+  .forecast .fdiff small{display:block;font-family:"Barlow",sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .forecast .fdiff.up{background:var(--good-dim);color:var(--good)}
+  .forecast .fdiff.down{background:var(--bad-dim);color:var(--bad)}
   .bikepanel .hd .r{display:flex;align-items:center;gap:8px}
   .headline{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:10px;align-items:end}
   .ftpnow{text-align:center}
@@ -255,10 +266,16 @@
       </div>
 
       <div class="intervals" id="intervals"></div>
+
+      <div class="forecast" id="forecast">
+        <span class="mi fi">trending_up</span>
+        <div class="ft"><div class="l" id="fcLabel">previsão no fim da aula</div><div class="n"><span id="fcKcal">–</span> <small>kcal</small></div></div>
+        <span class="fdiff" id="fcDiff"></span>
+      </div>
     </div>
 
   </div>
-  <footer class="app-version">Versão 3.4.0</footer>
+  <footer class="app-version">Versão 3.5.0</footer>
 </div>
 
 <script>
@@ -691,15 +708,15 @@
       el.className="ivl"+(done?" done":"")+(isNow?" now":"")+(!done&&!isNow?" locked":"")+((canConfirm||canUnconfirm)?" clickable":"");
       // diferença entre os valores já arredondados, pra bater exatamente com as metas mostradas nos cartões
       var delta=Math.max(0,Math.round(iv.goal)-Math.round(iv.baseline));
-      var tbar='';
+      var tick='';
       if(isNow && t!=null){
         var tfrac=Math.max(0,Math.min(1,(t-iv.start)/Math.max(0.0001,iv.end-iv.start)));
-        tbar='<div class="tbar"><span style="width:'+(tfrac*100).toFixed(1)+'%"></span></div>';
+        tick='<i class="tick" style="left:'+(tfrac*100).toFixed(1)+'%"></i>';
       }
       el.innerHTML=
         '<div class="num">'+iv.end+'<small>min</small></div>'+
         '<div class="info">'+
-          '<div class="bar"><span style="width:'+Math.round(frac*100)+'%"></span></div>'+tbar+
+          '<div class="bar"><span style="width:'+Math.round(frac*100)+'%"></span>'+tick+'</div>'+
           '<div class="goals"><span class="goal">'+Math.round(iv.goal)+' kcal</span><span class="delta">+'+delta+' kcal</span></div>'+
         '</div>'+
         '<span class="mi check">'+(done?'check_circle':'radio_button_unchecked')+'</span>';
@@ -755,6 +772,27 @@
     $("rpm").textContent = live ? Math.round(S.live.rpm) : "–";
     $("watts").textContent = live ? Math.round(S.live.watts) : "–";
     renderFtp(live);
+    renderForecast();
+  }
+  // previsão de kcal no fim da aula: ritmo médio desde a kcal inicial (minuto 0) até agora, pelo relógio de referência.
+  // Média da aula inteira (não da janela recente) porque a aula alterna zonas de propósito — uma janela curta oscilaria demais.
+  function forecastKcal(){
+    var t=classMin(), cur=curKcal();
+    if(t==null || t<=0) return null;
+    if(t>=S.total) return cur;
+    var rate=Math.max(0,cur-S.startKcal)/t;
+    return cur+rate*(S.total-t);
+  }
+  function renderForecast(){
+    var f=forecastKcal(), diffEl=$("fcDiff");
+    var ended=classMin()!=null && classMin()>=S.total;
+    $("fcLabel").textContent = ended ? "total da aula" : (f==null ? "previsão: toque num marco" : "previsão no fim da aula");
+    diffEl.classList.toggle("hidden",f==null);
+    if(f==null){ $("fcKcal").textContent="–"; return; }
+    var fr=Math.round(f), diff=fr-Math.round(S.goal);
+    $("fcKcal").textContent=fr;
+    diffEl.className="fdiff "+(diff>=0?"up":"down");
+    diffEl.innerHTML=(diff>=0?"+":"−")+Math.abs(diff)+"<small>da meta</small>";
   }
   // %FTP = watts agora / FTP; a zona usa o valor já arredondado, pra cor bater com o número mostrado
   function ftpZone(pct){ return pct<=55?1 : pct<=75?2 : pct<=89?3 : pct<=105?4 : 5; }

@@ -10,9 +10,13 @@ Dada uma **kcal inicial** (o que já está no mostrador da bike), uma **meta de 
 
 A confirmação começa **manual**: de olho no relógio da aula, você toca no marco atual (ex. minuto 8) quando chega nele — só dá pra confirmar o próximo da fila, em sequência, e só dá pra desfazer o último confirmado (pra corrigir um toque errado).
 
-Cada toque manual **acerta um relógio de referência** (o toque no marco 8 = minuto 8 da aula). O tempo em si não aparece em lugar nenhum: ele só alimenta uma **barra de tempo** fininha no marco atual, que mostra onde você deveria estar no bloco (4 min depois do toque no 8, ela está na metade do bloco 8→16). Quando a barra chega ao fim, o marco é **concluído sozinho** e o app já recalcula e passa pro próximo. Tocar de novo num marco reacerta o relógio; desfazer um marco para o relógio até o próximo toque.
+Cada toque manual **acerta um relógio de referência** (o toque no marco 8 = minuto 8 da aula). O tempo em si não aparece em lugar nenhum: ele só alimenta um **risco vertical** em cima da barra de kcal do marco atual, que mostra onde você deveria estar no bloco (4 min depois do toque no 8, o risco está na metade do bloco 8→16). Quando o risco chega ao fim, o marco é **concluído sozinho** e o app já recalcula e passa pro próximo. Tocar de novo num marco reacerta o relógio; desfazer um marco para o relógio até o próximo toque.
 
-No painel ao vivo, o quadro da bike fica fixo em cima e só a lista de marcos rola; ela acompanha sozinha o marco atual (o último concluído fica no topo), sem atrapalhar se você rolar na mão. A cada confirmação, o app recalcula os blocos seguintes com base na kcal real naquele momento: se você está adiantado, o que falta pros próximos blocos diminui; se está atrasado, aumenta. Ao superar a meta final, a lista sempre acrescenta um próximo nível de +50 kcal, pra continuar acompanhando quem passar do objetivo.
+No painel ao vivo, o quadro da bike fica fixo em cima, a **previsão de kcal no fim da aula** fica fixa no rodapé e só a lista de marcos rola; ela acompanha sozinha o marco atual (o último concluído fica no topo), sem atrapalhar se você rolar na mão.
+
+A previsão usa o relógio de referência: pega o ritmo médio da aula até agora (kcal feitas desde a kcal inicial ÷ minutos de aula) e projeta pro tempo que falta, mostrando também quanto fica acima (verde) ou abaixo (vermelho) da meta. Usa a média da aula inteira, e não só dos últimos minutos, porque a aula alterna zonas de propósito. Antes do primeiro toque num marco (ou depois de desfazer um), ainda não há previsão. Depois do fim da aula, mostra o total.
+
+A cada confirmação, o app recalcula os blocos seguintes com base na kcal real naquele momento: se você está adiantado, o que falta pros próximos blocos diminui; se está atrasado, aumenta. Ao superar a meta final, a lista sempre acrescenta um próximo nível de +50 kcal, pra continuar acompanhando quem passar do objetivo.
 
 ### Cadastro de bikes
 
