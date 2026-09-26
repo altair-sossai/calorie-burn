@@ -9,7 +9,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Oswald:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Oswald:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap">
 <style>
   :root{
     --ground:#0d0d0d; --surface:#161616; --surface-2:#1e1e1e;
@@ -100,8 +100,10 @@
   .iconbtn:active{background:var(--line)}
   .emptyscan{font-size:13px;color:var(--muted);padding:6px 2px;line-height:1.4;margin:0}
 
-  .live{display:flex;flex-direction:column;gap:11px}
-  .intervals{display:flex;flex-direction:column;gap:8px}
+  /* painel da bike fica fixo em cima; só a lista de marcos rola */
+  .live{display:flex;flex-direction:column;gap:11px;flex:1 1 auto;min-height:0}
+  .intervals{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;position:relative}
+  .intervals>.ivl{flex:0 0 auto}
   .ivl{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px}
   .ivl.now{border-color:var(--red-hi)}
   .ivl.done{border-color:var(--good);background:var(--good-dim)}
@@ -117,6 +119,9 @@
   .ivl .bar{height:8px;border-radius:999px;background:var(--surface-2);overflow:hidden}
   .ivl .bar>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--red-hi),var(--red));transition:width .4s}
   .ivl.done .bar>span{background:linear-gradient(90deg,#16a34a,var(--good))}
+  /* barra de tempo de referência: onde você deveria estar no bloco, pelo relógio da aula */
+  .ivl .tbar{height:4px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+  .ivl .tbar>span{display:block;height:100%;border-radius:999px;background:#d4d4d8}
   .ivl .goals{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
   .ivl .goal{font-family:"Oswald",sans-serif;font-weight:700;font-size:26px;line-height:1;color:var(--text);white-space:nowrap;font-variant-numeric:tabular-nums}
   .ivl .delta{font-family:"Oswald",sans-serif;font-weight:600;font-size:20px;line-height:1;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -128,15 +133,41 @@
   .bikepanel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px}
   .bikepanel .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
   .bikepanel .hd .t{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
-  .kcalnow{text-align:center}
-  .kcalnow .v{font-family:"Oswald",sans-serif;font-weight:700;font-size:60px;line-height:1;color:var(--red-hi);font-variant-numeric:tabular-nums}
-  .kcalnow .u{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  .rpmnow{text-align:center}
+  .rpmnow .v{font-family:"Oswald",sans-serif;font-weight:700;font-size:60px;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+  .rpmnow .u{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  .stat.kcal .v{color:var(--red-hi)}
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
   .stat{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 8px 8px;text-align:center}
   .stat .v{font-family:"Oswald",sans-serif;font-weight:700;font-size:44px;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
   .stat .u{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:4px}
   .nosig{color:var(--red-hi);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
   .bikepanel .reconnect{width:100%;margin-top:11px;padding:11px;font-size:14px}
+  .bikepanel .hd .r{display:flex;align-items:center;gap:8px}
+  .headline{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:10px;align-items:end}
+  .ftpnow{text-align:center}
+  .ftpnow .v{font-family:"Oswald",sans-serif;font-weight:700;font-size:60px;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+  .ftpnow .v small{font-size:26px;font-weight:600;margin-left:2px;align-self:flex-end;line-height:1;padding-bottom:5px}
+  .ftpnow .u{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  .zone{font-family:"Oswald",sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:3px 10px;border-radius:999px;background:var(--zc);color:#111}
+
+  /* zonas de %FTP: só o %FTP e o selo "Zona N" ganham a cor (1 cinza, 2 azul, 3 verde, 4 amarelo, 5 vermelho) */
+  .bikepanel[data-zone="1"]{--zc:#a1a1aa}
+  .bikepanel[data-zone="2"]{--zc:#6d8bff}
+  .bikepanel[data-zone="3"]{--zc:#22c55e}
+  .bikepanel[data-zone="4"]{--zc:#eae20c}
+  .bikepanel[data-zone="5"]{--zc:#ef4444}
+
+  /* ícone grande ao lado de cada número, pra saber o que é só de bater o olho */
+  .bikepanel .v{display:flex;align-items:center;justify-content:center;gap:3px}
+  .bikepanel .v .vi{font-variation-settings:"FILL" 1;flex:0 0 auto}
+  .rpmnow .vi,.ftpnow .vi{font-size:40px}
+  .stat .vi{font-size:34px}
+  .stat.kcal .vi{color:#ff7a1a}
+  .ftpnow .vi{color:#a5b4fc}
+  .rpmnow .vi{color:#38bdf8}
+  .stat.watts .vi{color:var(--gold)}
+  .bikepanel[data-zone] .ftpnow .v,.bikepanel[data-zone] .ftpnow .vi{color:var(--zc)}
 
   .linkbtn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:"Barlow",sans-serif;padding:0;display:flex;align-items:center;gap:5px}
   .linkbtn span:last-child{text-decoration:underline}
@@ -154,6 +185,7 @@
       <button class="navbtn active" id="navSetup" title="Configurar" aria-label="Configurar"><span class="mi">tune</span></button>
       <button class="navbtn" id="navBikes" title="Bikes" aria-label="Bikes"><span class="mi">directions_bike</span></button>
       <button class="navbtn" id="navLive" title="Painel" aria-label="Painel" disabled><span class="mi">monitoring</span></button>
+      <button class="navbtn" id="navFtp" title="FTP" aria-label="Alterar FTP"><span class="mi">speed</span></button>
     </nav>
   </header>
 
@@ -169,6 +201,7 @@
         <div class="field"><label for="total"><span class="mi sm">timer</span> Aula (min)</label><input id="total" type="number" inputmode="numeric" value="45"></div>
         <div class="field"><label for="interval"><span class="mi sm">view_week</span> Intervalo (min)</label><input id="interval" type="number" inputmode="numeric" value="8"></div>
       </div>
+      <div class="field"><label for="ftp"><span class="mi sm">speed</span> FTP (watts)</label><input id="ftp" type="number" inputmode="numeric" value="150"></div>
 
       <div class="bikeline">
         <span class="mi sm">directions_bike</span>
@@ -195,19 +228,28 @@
 
       <p class="emptyscan hidden" id="bikeEmpty">Nenhuma bike sua cadastrada ainda — toque em "Buscar bike" e depois em + pra adicionar.</p>
       <div class="biklist" id="bikeList"></div>
+
+      <button class="btn" id="startBtnBikes"><span class="mi">play_arrow</span> Iniciar aula</button>
     </div>
 
     <!-- 3. LIVE -->
     <div class="live hidden" id="live">
-      <div class="bikepanel">
+      <div class="bikepanel" id="bikepanel">
         <div class="hd">
           <span class="t"><span class="mi sm">directions_bike</span> <span id="bikeName">Bike</span></span>
-          <span class="nosig hidden" id="nosig"><span class="mi sm">sensors_off</span> sem sinal</span>
+          <span class="r">
+            <span class="zone hidden" id="zone"></span>
+            <span class="nosig hidden" id="nosig"><span class="mi sm">sensors_off</span> sem sinal</span>
+          </span>
         </div>
-        <div class="kcalnow"><div class="v" id="kcal">0</div><div class="u">kcal agora</div></div>
+        <!-- em cima o que o instrutor pede (zona e giro, na ordem do telão); embaixo o resultado, com a kcal colada nos marcos -->
+        <div class="headline">
+          <div class="ftpnow" id="ftpBox"><div class="v"><span class="mi vi">speed</span><span id="ftpPct">–</span><small>%</small></div><div class="u">do FTP</div></div>
+          <div class="rpmnow"><div class="v"><span class="mi vi">autorenew</span><span id="rpm">–</span></div><div class="u">rpm</div></div>
+        </div>
         <div class="stats">
-          <div class="stat"><div class="v" id="rpm">–</div><div class="u"><span class="mi sm">autorenew</span> rpm</div></div>
-          <div class="stat"><div class="v" id="watts">–</div><div class="u"><span class="mi sm">bolt</span> watts</div></div>
+          <div class="stat kcal"><div class="v"><span class="mi vi">local_fire_department</span><span id="kcal">0</span></div><div class="u">kcal agora</div></div>
+          <div class="stat watts"><div class="v"><span class="mi vi">bolt</span><span id="watts">–</span></div><div class="u">watts</div></div>
         </div>
         <button class="btn ghost reconnect hidden" id="reconnect"><span class="mi">bluetooth_searching</span> Reconectar bike</button>
       </div>
@@ -216,7 +258,7 @@
     </div>
 
   </div>
-  <footer class="app-version">Versão 3.2.0</footer>
+  <footer class="app-version">Versão 3.4.0</footer>
 </div>
 
 <script>
@@ -228,7 +270,7 @@
   var LE_OPTS={ filters:[{manufacturerData:[{companyIdentifier:KEISER_ID}]}], keepRepeatedDevices:true };
 
   var S={
-    goal:700, total:45, interval:8, startKcal:0,
+    goal:700, total:45, interval:8, startKcal:0, ftp:150,
     chosen:null,
     live:{kcal:0,watts:0,rpm:0,gear:0,dist:0,distUnit:'km',hr:0,min:0,sec:0,lastSeen:0},
     startedAt:null
@@ -237,7 +279,9 @@
   var intervals=[];           // [{start,end,baseline,goal}]
   var detected=new Map();     // bikeId -> { data, lastSeen }
   var view="setup", simState=null;
-  var confirmedIdx=0, history=[];   // marcos confirmados manualmente na aula (sequencial) + snapshots pra desfazer
+  var confirmedIdx=0, history=[];   // marcos confirmados na aula (sequencial) + snapshots pra desfazer
+  var clock=null;             // {at,min}: relógio de referência acertado no último toque manual (at=Date.now(), min=minuto da aula); não é exibido
+  var followIdx=-1;           // confirmedIdx pro qual a lista de marcos já foi rolada
   var kcalRestored=false, savedKcal=null;  // kcal veio do localStorage (refresh) — a próxima leitura real substitui sem o filtro de glitch
   var watched=new Map();      // device.id -> {device, ctrl}: bikes autorizadas cujos anúncios estamos escutando
   var leScan=null, lastResume=0, resuming=false, wakeLock=null, wakePending=false;
@@ -261,7 +305,7 @@
     $("title").textContent = v==="setup"?"Configurar":(v==="bikes"?"Bikes":"Ritmo de Queima");
     if(v==="bikes"){ renderBikeList(); renderDetected(); updateConnPill(); }
     if(v==="setup") renderBikeLine();
-    if(v==="live") renderLive();
+    if(v==="live"){ followIdx=-1; renderLive(); }
   }
 
   /* ---------- storage ---------- */
@@ -273,6 +317,7 @@
         if(c.total!=null){$("total").value=c.total;S.total=c.total;}
         if(c.interval!=null){$("interval").value=c.interval;S.interval=c.interval;}
         if(c.startKcal!=null){$("startKcal").value=c.startKcal;S.startKcal=c.startKcal;}
+        if(c.ftp!=null){$("ftp").value=c.ftp;S.ftp=c.ftp;}
         if(c.chosen!=null) S.chosen=c.chosen;
       }
     }catch(e){}
@@ -283,14 +328,14 @@
                .filter(function(id){ return typeof id==="number" && isFinite(id); });
     }catch(e){ bikes=[]; }
   }
-  function saveCfg(){ try{ localStorage.setItem(LS_KEY,JSON.stringify({goal:S.goal,total:S.total,interval:S.interval,startKcal:S.startKcal,chosen:S.chosen})); }catch(e){} }
+  function saveCfg(){ try{ localStorage.setItem(LS_KEY,JSON.stringify({goal:S.goal,total:S.total,interval:S.interval,startKcal:S.startKcal,ftp:S.ftp,chosen:S.chosen})); }catch(e){} }
   function saveBikes(){ try{ localStorage.setItem(LS_BIKES,JSON.stringify(bikes)); }catch(e){} }
   // aula em andamento: sobrevive a refresh/fechar a aba (marcos confirmados, histórico pra desfazer e última kcal)
   function classActive(){ return !!S.startedAt && (Date.now()-S.startedAt) < (S.total+CLASS_GRACE_MIN)*60000; }
   function saveClass(){
     if(!S.startedAt) return;
     savedKcal=S.live.kcal;
-    try{ localStorage.setItem(LS_CLASS,JSON.stringify({startedAt:S.startedAt,intervals:intervals,confirmedIdx:confirmedIdx,history:history,kcal:S.live.kcal})); }catch(e){}
+    try{ localStorage.setItem(LS_CLASS,JSON.stringify({startedAt:S.startedAt,intervals:intervals,confirmedIdx:confirmedIdx,history:history,clock:clock,kcal:S.live.kcal})); }catch(e){}
   }
   function loadClass(){
     try{
@@ -301,6 +346,7 @@
       intervals=c.intervals;
       confirmedIdx=Math.max(0,Math.min(intervals.length,c.confirmedIdx|0));
       history=Array.isArray(c.history)?c.history:[];
+      clock=(c.clock && c.clock.at && c.clock.min!=null)?c.clock:null;
       S.live.kcal=+c.kcal||0; savedKcal=S.live.kcal;
       kcalRestored=S.live.kcal>0;
       return true;
@@ -559,7 +605,7 @@
     return S.startKcal + (S.goal-S.startKcal)*frac;
   }
   function buildIntervals(){
-    intervals=[]; confirmedIdx=0; history=[];
+    intervals=[]; confirmedIdx=0; history=[]; clock=null; followIdx=-1;
     var bps=[];
     for(var t=S.interval;t<S.total;t+=S.interval) bps.push(t);
     if(!bps.length || bps[bps.length-1]<S.total) bps.push(S.total);
@@ -585,21 +631,39 @@
       iv.baseline=prevGoal; iv.goal=goal; prevGoal=goal;
     }
   }
-  function confirmInterval(i){
+  function confirmInterval(i,auto){
     if(i!==confirmedIdx) return;
     history.push(JSON.parse(JSON.stringify(intervals)));
     recalcFuture(i,curKcal());
     confirmedIdx=i+1;
+    // toque manual acerta o relógio de referência: agora é o fim deste marco na aula
+    if(!auto) clock={at:Date.now(),min:intervals[i].end};
     saveClass();
     renderIntervals();
   }
+  // desfazer para o relógio: sem ele não há barra de tempo nem avanço automático até o próximo toque manual
   function unconfirmInterval(i){
     if(i!==confirmedIdx-1) return;
     var snap=history.pop();
     if(snap) intervals=snap;
     confirmedIdx=i;
+    clock=null;
     saveClass();
     renderIntervals();
+  }
+  // minuto da aula pelo relógio de referência (null enquanto não houve toque manual)
+  function classMin(){ return clock ? clock.min+(Date.now()-clock.at)/60000 : null; }
+  // quando o relógio passa do fim do marco atual, conclui sozinho e recalcula os próximos
+  function autoAdvance(){
+    var t=classMin();
+    while(t!=null && confirmedIdx<intervals.length && t>=intervals[confirmedIdx].end) confirmInterval(confirmedIdx,true);
+  }
+  // rola a lista só quando o marco atual muda, pra não brigar com a rolagem manual; o último concluído fica no topo
+  function followCurrent(box){
+    if(view!=="live" || followIdx===confirmedIdx) return;
+    followIdx=confirmedIdx;
+    var target=box.children[Math.max(0,confirmedIdx-1)];
+    if(target) box.scrollTo({top:target.offsetTop,behavior:"smooth"});
   }
   // além da meta: mostra sempre o próximo nível de 50 em 50 kcal, independente dos marcos manuais
   function bonusLevel(cur){
@@ -612,6 +676,7 @@
   function renderIntervals(){
     var box=$("intervals");
     var cur=curKcal();
+    var t=classMin();
     box.innerHTML="";
     intervals.forEach(function(iv,i){
       var span=iv.goal-iv.baseline;
@@ -626,10 +691,15 @@
       el.className="ivl"+(done?" done":"")+(isNow?" now":"")+(!done&&!isNow?" locked":"")+((canConfirm||canUnconfirm)?" clickable":"");
       // diferença entre os valores já arredondados, pra bater exatamente com as metas mostradas nos cartões
       var delta=Math.max(0,Math.round(iv.goal)-Math.round(iv.baseline));
+      var tbar='';
+      if(isNow && t!=null){
+        var tfrac=Math.max(0,Math.min(1,(t-iv.start)/Math.max(0.0001,iv.end-iv.start)));
+        tbar='<div class="tbar"><span style="width:'+(tfrac*100).toFixed(1)+'%"></span></div>';
+      }
       el.innerHTML=
         '<div class="num">'+iv.end+'<small>min</small></div>'+
         '<div class="info">'+
-          '<div class="bar"><span style="width:'+Math.round(frac*100)+'%"></span></div>'+
+          '<div class="bar"><span style="width:'+Math.round(frac*100)+'%"></span></div>'+tbar+
           '<div class="goals"><span class="goal">'+Math.round(iv.goal)+' kcal</span><span class="delta">+'+delta+' kcal</span></div>'+
         '</div>'+
         '<span class="mi check">'+(done?'check_circle':'radio_button_unchecked')+'</span>';
@@ -653,6 +723,7 @@
         '<span class="mi check">'+(done2?'check_circle':'radio_button_unchecked')+'</span>';
       box.appendChild(el2);
     }
+    followCurrent(box);
   }
 
   function startClass(){
@@ -660,6 +731,7 @@
     S.goal=+$("goal").value||0;
     S.total=Math.max(1,+$("total").value||1);
     S.interval=Math.max(1,+$("interval").value||1);
+    S.ftp=Math.max(0,+$("ftp").value||0);
     saveCfg();
     S.startedAt=Date.now();
     if(isSim(S.chosen)){ simState=null; S.live.kcal=S.startKcal; }
@@ -682,6 +754,20 @@
     // giro e watts são instantâneos: sem sinal, mostra traço em vez de um valor velho
     $("rpm").textContent = live ? Math.round(S.live.rpm) : "–";
     $("watts").textContent = live ? Math.round(S.live.watts) : "–";
+    renderFtp(live);
+  }
+  // %FTP = watts agora / FTP; a zona usa o valor já arredondado, pra cor bater com o número mostrado
+  function ftpZone(pct){ return pct<=55?1 : pct<=75?2 : pct<=89?3 : pct<=105?4 : 5; }
+  function renderFtp(live){
+    var hasFtp=S.ftp>0;
+    var pct = live && hasFtp ? Math.round(S.live.watts/S.ftp*100) : null;
+    $("ftpBox").classList.toggle("hidden",!hasFtp);
+    $("ftpPct").textContent = pct==null ? "–" : pct;
+    var panel=$("bikepanel"), zone=$("zone");
+    if(pct==null){ panel.removeAttribute("data-zone"); zone.classList.add("hidden"); return; }
+    var z=ftpZone(pct);
+    panel.setAttribute("data-zone",z);
+    zone.textContent="Zona "+z; zone.classList.remove("hidden");
   }
 
   /* ---------- bike simulada (sempre disponível, sem Bluetooth) ---------- */
@@ -700,7 +786,7 @@
   /* ---------- eventos ---------- */
   loadCfg();
   renderBikeLine();
-  if(loadClass()){ $("navLive").disabled=false; nav("live"); }
+  if(loadClass()){ autoAdvance(); $("navLive").disabled=false; nav("live"); }
   resumeBluetooth(true);
   $("scan").addEventListener("click",startScan);
   $("reconnect").addEventListener("click",startScan);
@@ -709,10 +795,21 @@
   $("navBikes").addEventListener("click",function(){ nav("bikes"); });
   $("navLive").addEventListener("click",function(){ if(S.startedAt) nav("live"); });
   $("startBtn").addEventListener("click",startClass);
+  $("startBtnBikes").addEventListener("click",startClass);
   $("goal").addEventListener("input",function(){ S.goal=+this.value||0; saveCfg(); });
   $("total").addEventListener("input",function(){ S.total=Math.max(1,+this.value||1); saveCfg(); });
   $("startKcal").addEventListener("input",function(){ S.startKcal=Math.max(0,+this.value||0); saveCfg(); });
   $("interval").addEventListener("input",function(){ S.interval=Math.max(1,+this.value||1); saveCfg(); });
+  $("ftp").addEventListener("input",function(){ S.ftp=Math.max(0,+this.value||0); saveCfg(); });
+  // FTP muda com frequência durante a aula: prompt nativo direto do topo, sem sair do painel
+  $("navFtp").addEventListener("click",function(){
+    var v=prompt("FTP (watts)",S.ftp);
+    if(v==null || String(v).trim()==="") return;
+    var n=Math.round(+String(v).replace(",","."));
+    if(!isFinite(n) || n<0) return;
+    S.ftp=n; $("ftp").value=n; saveCfg();
+    if(view==="live") renderLive();
+  });
 
   // voltou pra tela (desbloqueou o celular / trocou de app): retoma a escuta na hora
   document.addEventListener("visibilitychange",function(){
@@ -727,6 +824,7 @@
   // laço de atualização: painel ao vivo, bike simulada, reconexão automática e status de conexão
   setInterval(function(){
     simTick();
+    if(S.startedAt) autoAdvance();
     if(needsReconnect()) resumeBluetooth(false);
     if(S.startedAt && S.live.kcal!==savedKcal) saveClass();
     if(view==="live") renderLive();

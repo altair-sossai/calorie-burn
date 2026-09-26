@@ -8,7 +8,11 @@ Painel de ritmo de calorias para bike indoor **Keiser M3**, com leitura ao vivo 
 
 Dada uma **kcal inicial** (o que já está no mostrador da bike), uma **meta de calorias**, o **tempo da aula** e um **intervalo** em minutos, o app quebra a aula em blocos (ex. a cada 8 min) e mostra, pra cada um, a meta cumulativa e quanto falta fazer naquele bloco especificamente.
 
-A confirmação é **manual**: de olho no relógio, você toca no marco atual (ex. minuto 8) quando chega nele — só dá pra confirmar o próximo da fila, em sequência, e só dá pra desfazer o último confirmado (pra corrigir um toque errado). A cada confirmação, o app recalcula os blocos seguintes com base na kcal real naquele momento: se você está adiantado, o que falta pros próximos blocos diminui; se está atrasado, aumenta. Ao superar a meta final, a lista sempre acrescenta um próximo nível de +50 kcal, pra continuar acompanhando quem passar do objetivo.
+A confirmação começa **manual**: de olho no relógio da aula, você toca no marco atual (ex. minuto 8) quando chega nele — só dá pra confirmar o próximo da fila, em sequência, e só dá pra desfazer o último confirmado (pra corrigir um toque errado).
+
+Cada toque manual **acerta um relógio de referência** (o toque no marco 8 = minuto 8 da aula). O tempo em si não aparece em lugar nenhum: ele só alimenta uma **barra de tempo** fininha no marco atual, que mostra onde você deveria estar no bloco (4 min depois do toque no 8, ela está na metade do bloco 8→16). Quando a barra chega ao fim, o marco é **concluído sozinho** e o app já recalcula e passa pro próximo. Tocar de novo num marco reacerta o relógio; desfazer um marco para o relógio até o próximo toque.
+
+No painel ao vivo, o quadro da bike fica fixo em cima e só a lista de marcos rola; ela acompanha sozinha o marco atual (o último concluído fica no topo), sem atrapalhar se você rolar na mão. A cada confirmação, o app recalcula os blocos seguintes com base na kcal real naquele momento: se você está adiantado, o que falta pros próximos blocos diminui; se está atrasado, aumenta. Ao superar a meta final, a lista sempre acrescenta um próximo nível de +50 kcal, pra continuar acompanhando quem passar do objetivo.
 
 ### Cadastro de bikes
 
@@ -16,11 +20,27 @@ As bikes só entram na lista **via Bluetooth**: você busca, toca em "+" na bike
 
 ### Fluxo (3 telas, no menu do topo)
 
-1. **Configurar** — kcal inicial, meta (kcal), tempo da aula e intervalo (min); mostra a bike selecionada (trocar leva pra aba Bikes) e o botão "Iniciar aula".
-2. **Bikes** — busca via Bluetooth, adiciona as detectadas, exclui as que não usa mais, e escolhe qual está em uso agora.
-3. **Painel ao vivo** — um cartão por marco (minuto final em destaque, meta cumulativa, quanto falta no bloco), que você toca pra confirmar conforme chega nos minutos; e só o essencial da bike: nome e a kcal que ela está lendo agora.
+1. **Configurar** — kcal inicial, meta (kcal), tempo da aula, intervalo (min) e **FTP (watts)**; mostra a bike selecionada (trocar leva pra aba Bikes) e o botão "Iniciar aula".
+2. **Bikes** — busca via Bluetooth, adiciona as detectadas, exclui as que não usa mais, e escolhe qual está em uso agora; também tem o botão "Iniciar aula", pra começar direto dali.
+3. **Painel ao vivo** — um cartão por marco (minuto final em destaque, meta cumulativa, quanto falta no bloco), que você toca pra confirmar conforme chega nos minutos; e o essencial da bike: %FTP e rpm em destaque (o que o instrutor pede), kcal e watts logo abaixo, colados nos marcos.
 
 Durante a aula, com a bike conectada, você não digita nada — só confirma os marcos de minuto. Se uma leitura de kcal vier zerada (glitch do Bluetooth), o app mantém o último valor válido em vez de mostrar zero.
+
+### %FTP e zonas
+
+O painel ao vivo mostra o **%FTP** — watts de agora divididos pelo FTP configurado (FTP 150 pedalando a 150 W = 100%; a 300 W = 200%). O número do %FTP e o selo "Zona N" no topo do painel ganham a cor da zona correspondente:
+
+| Zona | %FTP | Cor |
+|---|---|---|
+| 1 | até 55% | cinza |
+| 2 | 56–75% | azul |
+| 3 | 76–89% | verde |
+| 4 | 90–105% | amarelo |
+| 5 | acima de 105% | vermelho |
+
+Como é normal mudar o FTP durante a aula, há um botão de FTP no topo direito (ao lado de Configurar/Bikes/Painel), disponível em qualquer tela: ele abre um prompt nativo com o FTP atual e a mudança vale na hora.
+
+Sem sinal da bike, o %FTP vira traço e o selo da zona some. Com FTP 0/vazio, o %FTP fica oculto.
 
 ## Leitura da bike (Bluetooth)
 
