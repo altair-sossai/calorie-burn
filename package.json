@@ -1,7 +1,7 @@
 {
   "name": "ritmo-de-queima",
   "private": true,
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Painel de ritmo de calorias por intervalos para bike indoor Keiser M3, com leitura ao vivo por Bluetooth.",
   "type": "module",
   "scripts": {

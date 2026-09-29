@@ -12,6 +12,9 @@ for (const width of [320, 360, 375, 390, 420]) {
 
     expect(await noHorizontalScroll()).toBe(true);
     expect(await inside('[data-testid="nav"]', '[data-testid="phone"]')).toBe(true);
+    // no celular o app ocupa a tela inteira (sem margem em volta do cartão)
+    const phone = (await page.getByTestId('phone').boundingBox())!;
+    expect([phone.x, phone.y, phone.width, phone.height]).toEqual([0, 0, width, 800]);
 
     await app.startWithSim();
     await app.setClock('12:34');

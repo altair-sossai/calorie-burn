@@ -79,7 +79,7 @@ src/components/FtpGauge.module.css    o estilo só dele
 - **Cor da zona:** o `BikePanel` põe `data-zone="4"` no painel; o `BikePanel.module.css` traduz pra `--zc: var(--z4)`; o selo e o % do velocímetro (`fill: var(--zc, var(--text))`) herdam.
 - **Ganchos de teste:** como os nomes das classes mudam, os testes nunca usam classe — usam `id` (`#rpm`, `#intervals`), `data-testid` (`interval`, `interval-goal`, `bike-name`, `gauge-band`…) e atributos de estado (`data-state="done"`, `data-selected`, `data-on`, `data-visible`).
 - Fontes: **Oswald** (números e títulos), **Barlow** (texto), **Material Symbols** (ícones por ligadura: `<span class="mi">schedule</span>` vira o desenho do relógio — é o componente `Icon`).
-- O `.phone` do `App.module.css` é o "cartão" de no máximo 420 px; `#app` (global) ocupa a largura toda pra ele centralizar.
+- O `.phone` do `App.module.css` é o "cartão" de no máximo 420 px, centralizado no computador; `#app` (global) ocupa a largura toda pra ele centralizar. **No celular (até 480 px de largura)** um `@media` tira a margem em volta, a borda e a sombra: o app ocupa a tela inteira e os paddings internos são enxutos (12 px nas laterais) pra sobrar espaço pra lista de marcos.
 
 ## Exercícios
 

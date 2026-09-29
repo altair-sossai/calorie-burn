@@ -1,9 +1,16 @@
-/* o "cartão" do app: no máximo 420 px de largura e 880 de altura */
+/* o "cartão" do app: no máximo 420 px de largura e 880 de altura (no computador) */
 .phone{
   width:100%; max-width:420px;
   height:min(880px, calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
   background:var(--ground); border:1px solid var(--line); border-radius:28px;
   box-shadow:var(--shadow); overflow:hidden; display:flex; flex-direction:column; position:relative;
 }
-.stage{flex:1 1 auto;display:flex;flex-direction:column;padding:0 18px 18px;overflow-y:auto}
-.version{flex:0 0 auto;text-align:center;padding:8px 16px 10px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+/* no celular: tela cheia, sem borda/sombra; o espaço do notch e da barra do sistema vira padding */
+@media (max-width:480px){
+  .phone{
+    max-width:none; height:100dvh; border:0; border-radius:0; box-shadow:none;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+}
+.stage{flex:1 1 auto;display:flex;flex-direction:column;padding:0 12px 10px;overflow-y:auto}
+.version{flex:0 0 auto;text-align:center;padding:5px 12px 6px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}

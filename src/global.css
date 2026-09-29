@@ -21,6 +21,9 @@ body{
   display:flex; align-items:center; justify-content:center;
   padding:calc(12px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom));
 }
+/* no celular o app ocupa a tela inteira (sem o respiro em volta do cartão) — ver App.module.css */
+@media (max-width:480px){ body{padding:0} }
+
 /* raiz do Preact: ocupa a largura toda, como se o cartão fosse filho direto do body */
 #app{width:100%;display:flex;justify-content:center}
 
@@ -44,4 +47,4 @@ body{
 .btn[disabled]{opacity:.45;cursor:default}
 
 /* coluna das telas Configurar e Bikes */
-.col{display:flex;flex-direction:column;gap:14px}
+.col{display:flex;flex-direction:column;gap:12px}

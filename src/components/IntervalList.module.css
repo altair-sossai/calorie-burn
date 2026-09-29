@@ -1,6 +1,6 @@
-.list{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;position:relative}
+.list{display:flex;flex-direction:column;gap:6px;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;position:relative}
 
-.card{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px}
+.card{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:flex;align-items:center;gap:10px}
 .card.now{border-color:var(--red-hi)}
 .card.done{border-color:var(--good);background:var(--good-dim)}
 .card.locked{opacity:.45}
@@ -13,7 +13,7 @@
 .now .num{color:var(--red-hi)}
 .done .num,.done .num small{color:var(--good)}
 
-.info{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.info{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 
 /* barra da kcal do bloco */
 .bar{height:8px;border-radius:999px;background:var(--surface-2);position:relative}

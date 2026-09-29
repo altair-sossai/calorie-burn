@@ -100,7 +100,18 @@ Dois detalhes que custaram bugs:
 
 - `100dvh`: altura da tela **visível** (a barra do navegador que aparece/some não quebra o layout; `100vh` quebraria).
 - `env(safe-area-inset-top)`: espaço do notch/ilha do iPhone (junto com `viewport-fit=cover` na meta tag).
-- `min(880px, calc(…))`: o cartão tem no máximo 880 px, ou a tela menos as margens.
+- `min(880px, calc(…))`: no computador o cartão tem no máximo 880 px, ou a tela menos as margens.
+- **Media query** — estilo que só vale numa condição:
+
+  ```css
+  /* App.module.css: no celular, tela cheia */
+  @media (max-width:480px){
+    .phone{ max-width:none; height:100dvh; border:0; border-radius:0; box-shadow:none;
+            padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  }
+  ```
+
+  No computador o app aparece como um "celular" centralizado; num celular de verdade, a moldura seria só espaço perdido. As áreas do notch e da barra do sistema (`env(safe-area-inset-*)`) viram padding do próprio app.
 
 ### CSS Modules: um arquivo por componente
 

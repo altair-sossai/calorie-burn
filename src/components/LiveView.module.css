@@ -1,2 +1,2 @@
 /* painel da bike fixo em cima, previsão fixa embaixo; só a lista de marcos (flex:1 + min-height:0) rola */
-.live{display:flex;flex-direction:column;gap:11px;flex:1 1 auto;min-height:0}
+.live{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-height:0}

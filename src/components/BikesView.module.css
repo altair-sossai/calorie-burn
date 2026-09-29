@@ -1,5 +1,5 @@
 /* cartão "Buscar" */
-.conn{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px;display:flex;flex-direction:column;gap:11px}
+.conn{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px;display:flex;flex-direction:column;gap:10px}
 .hd{display:flex;align-items:center;justify-content:space-between}
 .title{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:13px;display:flex;align-items:center;gap:7px}
 .pill{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:4px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line);display:inline-flex;align-items:center;gap:5px}
@@ -11,7 +11,7 @@
 
 /* linhas de bike (cadastradas e detectadas) */
 .list{display:flex;flex-direction:column;gap:8px}
-.bike{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;cursor:pointer}
+.bike{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:9px 10px;cursor:pointer}
 .bike.sel{border-color:var(--red);background:#2a1113}
 .left{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
 .left :global(.mi){font-size:22px;color:var(--muted);flex:0 0 auto}

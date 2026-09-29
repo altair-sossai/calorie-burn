@@ -1,4 +1,4 @@
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:9px 10px 10px}
 
 /* a zona atual define --zc; o selo e o número do velocímetro herdam a cor */
 .panel[data-zone="1"]{--zc:var(--z1)}
@@ -8,7 +8,7 @@
 .panel[data-zone="5"]{--zc:var(--z5)}
 
 /* linha de cima: bike à esquerda; tempo da aula, zona e "sem sinal" à direita */
-.hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
 .title{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
 .status{display:flex;align-items:center;gap:8px}
 .ctime{font-family:"Oswald",sans-serif;font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--text);display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
@@ -17,7 +17,7 @@
 .nosig{color:var(--red-hi);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
 
 /* em cima o que o instrutor pede (zona e giro); o velocímetro fica com a coluna maior */
-.headline{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:10px;align-items:end}
+.headline{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;align-items:end}
 .headline.wide{grid-template-columns:1.9fr 1fr}
 .ftp,.rpm{text-align:center}
 .unit{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
@@ -29,8 +29,8 @@
 .rpm .icon{font-size:30px;color:#38bdf8}
 
 /* embaixo o resultado: kcal e watts */
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.stat{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 8px 8px;text-align:center}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.stat{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:7px 6px 6px;text-align:center}
 .stat .value{font-size:44px}
 .stat .icon{font-size:34px}
 .stat .unit{font-size:12px;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:4px}
@@ -38,4 +38,4 @@
 .kcal .icon{color:#ff7a1a}
 .watts .icon{color:var(--gold)}
 
-.panel .reconnect{width:100%;margin-top:11px;padding:11px;font-size:14px}
+.panel .reconnect{width:100%;margin-top:8px;padding:10px;font-size:14px}

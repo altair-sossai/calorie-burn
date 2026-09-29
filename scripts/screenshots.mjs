@@ -1,10 +1,14 @@
 // Gera os prints do README (screenshots/*.png) a partir do build, com a Bike simulada e uma aula no meio.
 // Uso: npm run screenshots   (roda o build antes)
+// Opcional: SHOTS_DIR, SHOTS_W e SHOTS_H mudam a pasta e o tamanho da tela (ex. 390x844 pra ver como fica num iPhone).
 import { chromium } from '@playwright/test';
 import { preview } from 'vite';
 
 const server = await preview({ preview: { port: 4175, strictPort: true } });
 const base = 'http://localhost:4175/';
+const dir = process.env.SHOTS_DIR || 'screenshots';
+const width = +(process.env.SHOTS_W || 452);
+const height = +(process.env.SHOTS_H || 904);
 const browser = await chromium.launch(process.env.CI ? {} : { channel: 'chrome' });
 
 // aula de 45 min, meta 700, blocos de 8; marcos 8 e 16 confirmados (no 16 a kcal real era 272) e relógio em 19:30
@@ -24,16 +28,16 @@ function seed(view) {
 }
 
 for (const view of ['live', 'setup', 'bikes']) {
-  const page = await browser.newPage({ viewport: { width: 452, height: 904 }, deviceScaleFactor: 2 });
+  const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 });
   await page.addInitScript(seed, view);
   await page.goto(base);
   await page.addStyleTag({ content: '*{transition:none!important}' });
   if (view === 'bikes') await page.click('#navBikes');
   await page.waitForTimeout(2500); // leituras da bike simulada + fontes
   if (view === 'live') await page.evaluate(() => { const b = document.getElementById('intervals'); b.scrollTop = b.children[1].offsetTop; });
-  await page.screenshot({ path: `screenshots/${view}.png` });
+  await page.screenshot({ path: `${dir}/${view}.png` });
   await page.close();
-  console.log(`screenshots/${view}.png`);
+  console.log(`${dir}/${view}.png`);
 }
 
 await browser.close();
