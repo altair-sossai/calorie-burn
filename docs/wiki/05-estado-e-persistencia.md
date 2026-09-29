@@ -37,7 +37,7 @@ new AppStore({ storage: localStorage, now: () => Date.now(), isListening: () => 
 | avisos | `showNoBle()`, `bleError(e, hasBle)`, `clearNotice()` |
 | aula | `startClass()`, `confirmInterval(i)`, `unconfirmInterval(i)`, `syncClock(min)`, `saveClass()` |
 | relógio | `tick()` — chamado pelo runtime a cada 1 s |
-| consultas | `hasBike()`, `showBike()`, `needsReconnect()`, `classActive()`, `classMin()`, `connStatus()` |
+| consultas | `hasBike()`, `showBike()`, `needsReconnect()`, `classActive()`, `classMin()`, `connStatus()`, `forecast()` (previsão com cache de 15 s) |
 
 ### Como a tela fica sabendo
 

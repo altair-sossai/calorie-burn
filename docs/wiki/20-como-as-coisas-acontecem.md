@@ -57,7 +57,7 @@ Dentro de `store.tick()`:
 4. `emit()` → `App` redesenha → cada componente recalcula o que mostra:
    - `BikePanel`: `showBike()` (leitura há < 20 s?) decide entre valores e "–"; `classMin()` → tempo `MM:SS`; `%FTP` → zona → posição do ponteiro.
    - `IntervalList`: barra de kcal de cada marco, risco do marco atual (`timeProgress`), cartão +50.
-   - `Forecast`: `forecastView(classMin, kcal, cfg)`.
+   - `Forecast`: `store.forecast()` — devolve a previsão guardada; só recalcula (`forecastView`) a cada 15 s ou quando a fase/relógio/plano mudam. Antes dos 5 min mostra "previsão a partir dos 5 min".
 
 Depois, `needsReconnect()` (bike real sem leitura há > 4 s) chama `ble.resume(false)`, que só age se já passaram 10 s da última tentativa.
 
@@ -93,7 +93,7 @@ Você toca no cartão "16 min" (o atual).
    - `confirmedIdx = 2`;
    - `clock = { at: now, min: 16 }` (toque manual acerta o relógio).
 4. A sessão mudou (`next !== this.session`) → `saveClass()` grava no `localStorage` → `emit()`.
-5. Redesenho: "16" fica verde; "24" vira o atual com o risco em 0%; tempo `16:00` ao lado da zona; previsão recalculada.
+5. Redesenho: "16" fica verde; "24" vira o atual com o risco em 0%; tempo `16:00` ao lado da zona; previsão recalculada na hora (o relógio mudou, então o cache de 15 s é descartado).
 6. `useEffect([confirmedIdx])` do `IntervalList` rola a lista pra deixar o "16" no topo.
 
 Tocar de novo no "16" (agora o último concluído) → `unconfirm`: volta as metas do `history` e **zera o relógio**.

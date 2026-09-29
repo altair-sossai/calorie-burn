@@ -12,19 +12,39 @@ export function forecastKcal(t: number | null, cur: number, plan: Pick<ClassPlan
   return cur + rate * (plan.total - t);
 }
 
+/** Antes disso o ritmo médio ainda oscila demais (aquecimento, primeiros sprints): sem previsão. */
+export const FORECAST_MIN_MINUTES = 5;
+
+/** Fase da previsão: sem relógio, aquecendo (< 5 min), valendo, ou aula encerrada. */
+export type ForecastPhase = 'noClock' | 'warmup' | 'active' | 'ended';
+
+export function forecastPhase(t: number | null, total: number): ForecastPhase {
+  if (t == null) return 'noClock';
+  if (t >= total) return 'ended';
+  return t < FORECAST_MIN_MINUTES ? 'warmup' : 'active';
+}
+
 export interface ForecastView {
+  phase: ForecastPhase;
   label: string;
-  /** kcal prevista (arredondada) ou null sem relógio */
+  /** kcal prevista (arredondada) ou null (sem relógio / antes dos 5 min) */
   kcal: number | null;
   /** diferença pra meta, já com os dois lados arredondados */
   diff: number | null;
 }
 
+const LABELS: Record<ForecastPhase, string> = {
+  noClock: 'previsão: acerte o relógio',
+  warmup: `previsão a partir dos ${FORECAST_MIN_MINUTES} min`,
+  active: 'previsão no fim da aula',
+  ended: 'total da aula',
+};
+
 export function forecastView(t: number | null, cur: number, plan: Pick<ClassPlan, 'startKcal' | 'total' | 'goal'>): ForecastView {
-  const f = forecastKcal(t, cur, plan);
-  const ended = t != null && t >= plan.total;
-  const label = ended ? 'total da aula' : f == null ? 'previsão: acerte o relógio' : 'previsão no fim da aula';
-  if (f == null) return { label, kcal: null, diff: null };
+  const phase = forecastPhase(t, plan.total);
+  const label = LABELS[phase];
+  const f = phase === 'active' || phase === 'ended' ? forecastKcal(t, cur, plan) : null;
+  if (f == null) return { phase, label, kcal: null, diff: null };
   const kcal = Math.round(f);
-  return { label, kcal, diff: kcal - Math.round(plan.goal) };
+  return { phase, label, kcal, diff: kcal - Math.round(plan.goal) };
 }

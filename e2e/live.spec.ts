@@ -136,8 +136,9 @@ test.describe('relógio da aula', () => {
     await app.setClock('0245');
     expect(await app.tickLeft(8)).toBeCloseTo(34.4, 0);
     await expect(app.$('classTime')).toHaveText(/^schedule0?2:4[5-6]$/);
-    await expect(app.$('fcLabel')).toHaveText('previsão no fim da aula');
-    await expect(app.$('fcDiff')).toHaveText(/^−\d+da meta$/);
+    await expect(app.$('fcLabel')).toHaveText('previsão a partir dos 5 min'); // antes de 5 min, sem previsão
+    await expect(app.$('fcKcal')).toHaveText('–');
+    await expect(app.$('fcDiff')).toHaveCount(0);
 
     await app.setClock(null);
     expect((await app.prompts())[2][1]).toMatch(/^02:4[5-6]$/);
@@ -145,6 +146,25 @@ test.describe('relógio da aula', () => {
     await app.setClock('2:75');
     expect(await app.alerts()).toEqual(['Tempo inválido. Use MM:SS, MMSS ou MSS — ex. 02:45, 0245 ou 245.']);
     expect(await app.tickLeft(8)).toBeGreaterThan(34);
+  });
+
+  test('previsão: só a partir dos 5 min e atualizada a cada 15 s', async ({ app }) => {
+    await startClass(app);
+    await app.advert({ kcal: 60 });
+    await app.setClock('4:50');
+    await expect(app.$('fcLabel')).toHaveText('previsão a partir dos 5 min');
+
+    await app.advance(15_000); // passa dos 5 min
+    await expect(app.$('fcLabel')).toHaveText('previsão no fim da aula');
+    await expect(app.$('fcDiff')).toBeVisible();
+    const first = (await app.$('fcKcal').textContent())!;
+
+    await app.advert({ kcal: 120 }); // o ritmo dobrou, mas a previsão espera os 15 s
+    await app.tick();
+    await expect(app.$('fcKcal')).toHaveText(first);
+    await app.advance(15_000);
+    await app.advert({ kcal: 120 });
+    await expect(app.$('fcKcal')).not.toHaveText(first);
   });
 
   test('o tempo aparece ao lado da zona e anda sozinho', async ({ app }) => {

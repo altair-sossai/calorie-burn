@@ -1,12 +1,11 @@
 import { useRuntime } from '../app/context';
-import { forecastView } from '../domain/forecast';
 import s from './Forecast.module.css';
 import { Icon } from './Icon';
 
 /** Rodapé fixo da aula: previsão de kcal no fim, no ritmo médio da aula até agora. */
 export function Forecast() {
   const { store } = useRuntime();
-  const f = forecastView(store.classMin(), store.live.kcal, store.cfg);
+  const f = store.forecast();
   return (
     <div class={s.forecast} id="forecast">
       <Icon name="trending_up" class={s.icon} />

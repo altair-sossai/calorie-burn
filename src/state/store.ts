@@ -1,6 +1,7 @@
 import type { KeiserReading } from '../ble/keiser';
 import { SIM_ID, simStep, type SimState } from '../ble/simulator';
 import { classMin } from '../domain/classTime';
+import { forecastPhase, forecastView, type ForecastView } from '../domain/forecast';
 import { guardKcal } from '../domain/inputs';
 import * as session from '../domain/session';
 import type { Session } from '../domain/session';
@@ -16,6 +17,8 @@ export type Notice = { kind: 'noBle' } | { kind: 'bleError'; name: string; messa
 export const STALE_MS = 4000;
 /** No painel, uma falha curta de leitura não apaga nada: segura os últimos valores até isso sem sinal. */
 export const HOLD_MS = 20000;
+/** A previsão de kcal no rodapé só é recalculada a cada tanto (mudando todo segundo ela distrai mais do que ajuda). */
+export const FORECAST_REFRESH_MS = 15000;
 /** Por quanto tempo depois do fim previsto a aula ainda é restaurada num refresh. */
 export const CLASS_GRACE_MIN = 60;
 
@@ -65,6 +68,7 @@ export class AppStore {
   private kcalRestored = false;
   private savedKcal: number | null = null;
   private sim: SimState | null = null;
+  private forecastCache: { at: number; key: string; view: ForecastView } | null = null;
   private listeners = new Set<() => void>();
 
   constructor(private deps: StoreDeps) {}
@@ -124,6 +128,23 @@ export class AppStore {
   }
   classMin(): number | null {
     return this.session ? classMin(this.session.clock, this.now()) : null;
+  }
+  /**
+   * Previsão pro rodapé, recalculada no máximo a cada FORECAST_REFRESH_MS. Recalcula na hora quando muda algo que
+   * muda o sentido dela: relógio acertado/desfeito, fase (sem relógio → antes dos 5 min → valendo → fim) ou o plano.
+   * Depois do fim, acompanha a kcal ao vivo (é o total feito).
+   */
+  forecast(): ForecastView {
+    const now = this.now();
+    const t = this.classMin();
+    const phase = forecastPhase(t, this.cfg.total);
+    const clock = this.session?.clock;
+    const key = [phase, clock?.at, clock?.min, this.cfg.startKcal, this.cfg.goal, this.cfg.total].join("|");
+    const c = this.forecastCache;
+    if (!c || c.key !== key || phase === "ended" || now - c.at >= FORECAST_REFRESH_MS) {
+      this.forecastCache = { at: now, key, view: forecastView(t, this.live.kcal, this.cfg) };
+    }
+    return this.forecastCache!.view;
   }
   connStatus(): { on: boolean; text: string } {
     if (isSim(this.cfg.chosen)) return { on: true, text: 'simulando' };

@@ -3,7 +3,7 @@ import type { KeiserReading } from '../ble/keiser';
 import { SIM_ID } from '../ble/simulator';
 import { fakeClock, memoryStorage } from '../testing/helpers';
 import { KEYS } from './storage';
-import { AppStore, HOLD_MS, STALE_MS } from './store';
+import { AppStore, FORECAST_REFRESH_MS, HOLD_MS, STALE_MS } from './store';
 
 const reading = (o: Partial<KeiserReading> = {}): KeiserReading => ({
   realtime: true, id: 7, rpm: 80, hr: 130, watts: 150, kcal: 30, min: 1, sec: 2, dist: 1, distUnit: 'km', gear: 12, ...o,
@@ -202,6 +202,38 @@ describe('aula', () => {
     for (let i = 0; i < 3; i++) { clock.advance(1000); store.tick(); }
     expect(store.showBike()).toBe(true);
     expect(store.live.watts).toBeGreaterThan(0);
+  });
+
+  it('previsão: só depois de 5 min e recalculada no máximo a cada 15 s', () => {
+    const { store, clock } = started();
+    expect(store.forecast().phase).toBe('noClock');
+    store.syncClock(4);
+    expect(store.forecast()).toMatchObject({ phase: 'warmup', kcal: null });
+
+    store.syncClock(10); // mudar o relógio recalcula na hora
+    store.ingest(reading({ kcal: 150 })); // 15/min → 150 + 15·35 = 675
+    const first = store.forecast();
+    expect(first).toMatchObject({ phase: 'active', kcal: 675 });
+
+    store.ingest(reading({ kcal: 200 }));
+    clock.advance(FORECAST_REFRESH_MS - 1);
+    expect(store.forecast()).toBe(first); // ainda o mesmo valor
+    clock.advance(1);
+    expect(store.forecast().kcal).not.toBe(675); // 15 s depois, recalcula
+
+    const before = store.forecast();
+    store.setInput('goal', '800'); // mudar a meta também recalcula na hora
+    expect(store.forecast()).not.toBe(before);
+    expect(store.forecast().diff).toBe(store.forecast().kcal! - 800);
+  });
+
+  it('previsão depois do fim acompanha a kcal ao vivo', () => {
+    const { store } = started();
+    store.syncClock(46);
+    store.ingest(reading({ kcal: 700 }));
+    expect(store.forecast()).toMatchObject({ phase: 'ended', kcal: 700 });
+    store.ingest(reading({ kcal: 710 }));
+    expect(store.forecast().kcal).toBe(710);
   });
 
   it('erro de Bluetooth leva pra aba Bikes com o aviso', () => {

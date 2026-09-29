@@ -76,6 +76,8 @@ scripts/         screenshots.mjs                              → página 8
 | tick | 1 s | `app/runtime.ts` | redesenha o painel, avança marcos, bike simulada |
 | `STALE_MS` | 4 s | `state/store.ts` | sem leitura há mais que isso → tenta reconectar sozinho |
 | `HOLD_MS` | 20 s | `state/store.ts` | até aqui o painel segura os últimos valores |
+| `FORECAST_REFRESH_MS` | 15 s | `state/store.ts` | a previsão do rodapé é recalculada no máximo a cada 15 s |
+| `FORECAST_MIN_MINUTES` | 5 min | `domain/forecast.ts` | antes disso não há previsão |
 | `RESUME_MS` | 10 s | `ble/bluetooth.ts` | intervalo mínimo entre tentativas automáticas de reconexão |
 | `CLASS_GRACE_MIN` | 60 min | `state/store.ts` | aula ainda é restaurada num refresh até 60 min após o fim |
 | `BONUS_STEP` | 50 kcal | `domain/intervals.ts` | níveis extras depois da meta |

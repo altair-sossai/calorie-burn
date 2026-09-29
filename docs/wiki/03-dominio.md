@@ -119,7 +119,18 @@ rate     = max(0, kcal_agora − startKcal) / t          (kcal por minuto desde 
 previsão = kcal_agora + rate × (total − t)
 ```
 
-Usa a **média da aula inteira** (não dos últimos minutos) porque a aula alterna zonas de propósito — uma janela curta oscilaria demais. Ex.: 250 kcal em 15 min → 16,7/min → 250 + 16,7 × 30 = **750** → "+50 da meta". Sem relógio (`t = null`) não há previsão; depois do fim, mostra o total.
+Usa a **média da aula inteira** (não dos últimos minutos) porque a aula alterna zonas de propósito — uma janela curta oscilaria demais. Ex.: 250 kcal em 15 min → 16,7/min → 250 + 16,7 × 30 = **750** → "+50 da meta".
+
+**Fases** (`forecastPhase`) — cada uma com seu rótulo no rodapé:
+
+| Fase | Quando | Rodapé |
+|---|---|---|
+| `noClock` | relógio não acertado | "previsão: acerte o relógio", sem número |
+| `warmup` | menos de **5 min** de aula (`FORECAST_MIN_MINUTES`) | "previsão a partir dos 5 min", sem número — no começo o ritmo médio oscila demais (aquecimento, primeiro sprint) |
+| `active` | de 5 min até o fim | a previsão e a diferença pra meta |
+| `ended` | depois do fim | "total da aula" = a kcal feita |
+
+**Atualização a cada 15 s** (`store.forecast()`, `FORECAST_REFRESH_MS`): o número mudando todo segundo distrai. O store guarda a última previsão e só recalcula depois de 15 s — **ou na hora** se mudar algo que muda o sentido dela: a fase, o relógio (acertado/desfeito) ou o plano (meta, duração, kcal inicial). Na fase `ended` acompanha a kcal ao vivo. A regra dos 5 min é do domínio (pura, testada em `forecast.test.ts`); o ritmo de atualização é do store (depende do tempo, testado em `store.test.ts`).
 
 ## Zonas e velocímetro (`zones.ts`)
 

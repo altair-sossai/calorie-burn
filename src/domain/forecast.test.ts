@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { forecastKcal, forecastView } from './forecast';
+import { FORECAST_MIN_MINUTES, forecastKcal, forecastPhase, forecastView } from './forecast';
 
 const plan = { startKcal: 0, goal: 700, total: 45 };
 
@@ -20,9 +20,21 @@ describe('forecastKcal', () => {
 
 describe('forecastView', () => {
   it('rótulos e diferença pra meta', () => {
-    expect(forecastView(null, 0, plan)).toEqual({ label: 'previsão: acerte o relógio', kcal: null, diff: null });
-    expect(forecastView(15, 250, plan)).toEqual({ label: 'previsão no fim da aula', kcal: 750, diff: 50 });
-    expect(forecastView(15, 200, plan)).toEqual({ label: 'previsão no fim da aula', kcal: 600, diff: -100 });
-    expect(forecastView(46, 760, plan)).toEqual({ label: 'total da aula', kcal: 760, diff: 60 });
+    expect(forecastView(null, 0, plan)).toEqual({ phase: 'noClock', label: 'previsão: acerte o relógio', kcal: null, diff: null });
+    expect(forecastView(15, 250, plan)).toEqual({ phase: 'active', label: 'previsão no fim da aula', kcal: 750, diff: 50 });
+    expect(forecastView(15, 200, plan)).toEqual({ phase: 'active', label: 'previsão no fim da aula', kcal: 600, diff: -100 });
+    expect(forecastView(46, 760, plan)).toEqual({ phase: 'ended', label: 'total da aula', kcal: 760, diff: 60 });
+  });
+
+  it('só prevê depois de 5 min de aula', () => {
+    expect(FORECAST_MIN_MINUTES).toBe(5);
+    expect(forecastView(4.99, 80, plan)).toEqual({ phase: 'warmup', label: 'previsão a partir dos 5 min', kcal: null, diff: null });
+    expect(forecastView(5, 80, plan)).toMatchObject({ phase: 'active', kcal: 720, diff: 20 }); // 16 kcal/min
+  });
+});
+
+describe('forecastPhase', () => {
+  it('sem relógio → aquecendo → valendo → fim', () => {
+    expect([null, 0, 4.9, 5, 44.9, 45, 50].map((t) => forecastPhase(t, 45))).toEqual(['noClock', 'warmup', 'warmup', 'active', 'active', 'ended', 'ended']);
   });
 });
