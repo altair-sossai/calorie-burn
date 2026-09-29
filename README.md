@@ -87,6 +87,8 @@ No iPhone (Bluefy), travar a tela ou recarregar a página costuma interromper a 
 
 ## Desenvolvimento
 
+📚 **Pra estudar o código, comece pela [wiki](docs/wiki/README.md)**: arquitetura, cálculos, Bluetooth, estado, interface, testes, publicação e receitas passo a passo.
+
 Requer **Node 22+**.
 
 ```bash
