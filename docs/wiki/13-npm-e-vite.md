@@ -48,7 +48,7 @@ flowchart LR
 
 - **Não empacota nada**: serve cada arquivo como módulo ES, transformando TypeScript/JSX na hora. Por isso sobe em milissegundos.
 - **HMR** (*Hot Module Replacement*): ao salvar um arquivo, o Vite manda pelo WebSocket só o módulo alterado; com o Prefresh, o componente atualiza sem perder o estado.
-- CSS importado no JS (`import './styles.css'` no `main.tsx`) vira uma tag `<style>` injetada.
+- CSS importado no JS (`import './global.css'` no `main.tsx`, `import s from './FtpGauge.module.css'` nos componentes) vira uma tag `<style>` injetada. Arquivos `*.module.css` são **CSS Modules**: o Vite renomeia cada classe (`.pct` → `_pct_1x2y3`) e devolve o objeto `s` com os nomes novos ([página 17](17-svg-e-css.md#css-modules-um-arquivo-por-componente)).
 
 ### `npm run build` — build de produção
 
@@ -88,7 +88,7 @@ export default defineConfig({
 ## Exercícios
 
 1. Rode `npm run build` e abra o JS em `dist/assets/`. Procure por `"previsão no fim da aula"`. O que aconteceu com os nomes das funções?
-2. Com `npm run dev` rodando e o painel aberto, mude uma cor em `styles.css`. A página recarregou inteira?
+2. Com `npm run dev` rodando e o painel aberto, mude uma cor em `global.css` ou num `*.module.css`. A página recarregou inteira?
 3. Por que `preact` está em `dependencies` e `vite` em `devDependencies`, se os dois são necessários pro build?
 
 **Pra aprofundar:** [Vite — Guia](https://vite.dev/guide/) · [Por que Vite](https://vite.dev/guide/why) · [npm — package.json](https://docs.npmjs.com/cli/configuring-npm/package-json) · [semver](https://semver.org/lang/pt-BR/)

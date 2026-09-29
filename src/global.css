@@ -1,0 +1,47 @@
+/* Ritmo de Queima — estilos globais: cores, base da página e peças usadas em várias telas.
+   O estilo de cada componente fica no *.module.css ao lado dele (CSS Modules: classes com escopo local). */
+
+:root{
+  --ground:#0d0d0d; --surface:#161616; --surface-2:#1e1e1e;
+  --line:#323232; --text:#f4f4f5; --muted:#9b9b9b;
+  --red:#dc2626; --red-hi:#ff4444;
+  --good:#22c55e; --good-dim:#0f2a17;
+  --bad:#ef4444; --bad-dim:#2a1111;
+  --amber:#f59e0b; --amber-dim:#2a1e07; --gold:#fbbf24;
+  --shadow:0 10px 30px rgba(0,0,0,.55);
+  /* zonas de %FTP: 1 cinza, 2 azul, 3 verde, 4 amarelo, 5 vermelho */
+  --z1:#a1a1aa; --z2:#6d8bff; --z3:#22c55e; --z4:#eae20c; --z5:#ef4444;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; min-height:100dvh;
+  background:radial-gradient(120% 80% at 50% -10%, #2a0b0d 0%, var(--ground) 55%);
+  color:var(--text); font-family:"Barlow",system-ui,-apple-system,sans-serif;
+  display:flex; align-items:center; justify-content:center;
+  padding:calc(12px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom));
+}
+/* raiz do Preact: ocupa a largura toda, como se o cartão fosse filho direto do body */
+#app{width:100%;display:flex;justify-content:center}
+
+/* ícones do Material Symbols (ligadura: o texto vira o desenho) — componente Icon */
+.mi{font-family:"Material Symbols Outlined";font-weight:normal;font-style:normal;line-height:1;
+  letter-spacing:normal;text-transform:none;white-space:nowrap;direction:ltr;
+  font-feature-settings:"liga";-webkit-font-smoothing:antialiased;display:inline-block;vertical-align:middle}
+.mi.sm{font-size:15px}
+
+/* botões: usados em Configurar, Bikes e no painel */
+.btn{
+  border:none;border-radius:13px;cursor:pointer;font-family:"Oswald",sans-serif;text-transform:uppercase;
+  letter-spacing:.05em;font-weight:600;font-size:16px;padding:14px;color:#fff;
+  background:linear-gradient(135deg,var(--red-hi),var(--red));
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn .mi{font-size:20px}
+.btn:active{transform:scale(.985)}
+.btn:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.btn.ghost{background:var(--surface-2);color:var(--text);border:1px solid var(--line)}
+.btn[disabled]{opacity:.45;cursor:default}
+
+/* coluna das telas Configurar e Bikes */
+.col{display:flex;flex-direction:column;gap:14px}

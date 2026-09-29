@@ -101,6 +101,8 @@ test('sem sinal: segura os valores por 20 s', async ({ app }) => {
 - `live.spec.ts` — marcos, velocímetro nos limites, glitch, sinal de 20 s, FTP, relógio, tempo ao lado da zona, toques, refresh, +50, fim.
 - `layout.spec.ts` — 320, 360, 375, 390 e 420 px: sem rolagem lateral, menu dentro do cartão, velocímetro sem invadir o giro.
 
+**Como os testes acham os elementos:** nunca por classe (com CSS Modules o nome muda no build). Usam `id` (`#rpm`, `#zone`, `#intervals`), `getByTestId(...)` (`interval`, `interval-goal`, `interval-tick`, `bike`, `bike-name`, `bike-select`, `gauge`, `gauge-band`, `rpm-box`, `panel-status`, `phone`, `nav`) e atributos de estado (`data-state="done|now|locked"`, `data-selected`, `data-on`, `data-visible`).
+
 ### Quando um teste falha
 
 ```bash

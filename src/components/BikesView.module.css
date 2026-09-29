@@ -1,0 +1,23 @@
+/* cartão "Buscar" */
+.conn{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px;display:flex;flex-direction:column;gap:11px}
+.hd{display:flex;align-items:center;justify-content:space-between}
+.title{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:13px;display:flex;align-items:center;gap:7px}
+.pill{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:4px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line);display:inline-flex;align-items:center;gap:5px}
+.pill.on{color:var(--good);border-color:var(--good-dim);background:var(--good-dim)}
+.empty{font-size:13px;color:var(--muted);padding:6px 2px;line-height:1.4;margin:0}
+
+.notice{background:var(--surface);border-left:3px solid var(--red);border-radius:10px;padding:11px 13px;font-size:13px;line-height:1.45;color:var(--muted)}
+.notice b{color:var(--text)}
+
+/* linhas de bike (cadastradas e detectadas) */
+.list{display:flex;flex-direction:column;gap:8px}
+.bike{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;cursor:pointer}
+.bike.sel{border-color:var(--red);background:#2a1113}
+.left{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
+.left :global(.mi){font-size:22px;color:var(--muted);flex:0 0 auto}
+.bike.sel .left :global(.mi){color:var(--red-hi)}
+.name{font-family:"Oswald",sans-serif;font-weight:600;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.name small{display:block;font-family:"Barlow",sans-serif;font-weight:600;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.bike.sel .selIcon{color:var(--red-hi)}
+.iconbtn{background:none;border:none;color:var(--muted);cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;flex:0 0 auto}
+.iconbtn:active{background:var(--line)}

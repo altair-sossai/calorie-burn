@@ -15,9 +15,9 @@ test.describe('início da aula', () => {
     await expect(app.$('navLive')).toBeEnabled();
     await expect(app.$('navClock')).toBeVisible();
     await expect(app.$('title')).toHaveCount(0); // no painel fica só a chama
-    await expect(page.locator('#intervals .num')).toHaveText(['8min', '16min', '24min', '32min', '40min', '45min']);
-    await expect(page.locator('#intervals .goal')).toHaveText(['124 kcal', '249 kcal', '373 kcal', '498 kcal', '622 kcal', '700 kcal']);
-    await expect(page.locator('#intervals .delta')).toHaveText(['+124 kcal', '+125 kcal', '+124 kcal', '+125 kcal', '+124 kcal', '+78 kcal']);
+    await expect(page.getByTestId('interval-num')).toHaveText(['8min', '16min', '24min', '32min', '40min', '45min']);
+    await expect(page.getByTestId('interval-goal')).toHaveText(['124 kcal', '249 kcal', '373 kcal', '498 kcal', '622 kcal', '700 kcal']);
+    await expect(page.getByTestId('interval-delta')).toHaveText(['+124 kcal', '+125 kcal', '+124 kcal', '+125 kcal', '+124 kcal', '+78 kcal']);
     expect(await app.states()).toBe('now,-,-,-,-,-');
     expect(await app.tickLeft(8)).toBeNull();
     await expect(app.$('fcLabel')).toHaveText('previsão: acerte o relógio');
@@ -37,10 +37,10 @@ test.describe('painel ao vivo', () => {
     await expect(app.$('ftpPct')).toHaveText('100');
     await expect(app.$('zone')).toHaveText('Zona 4');
     await expect(app.$('bikepanel')).toHaveAttribute('data-zone', '4');
-    await expect(page.locator('#gaugeBands .band.on')).toHaveClass(/z4/);
-    await expect(page.locator('#gaugeBands .band.on')).toHaveCount(1);
+    await expect(page.locator('[data-testid="gauge-band"][data-on]')).toHaveAttribute('data-zone', '4');
+    await expect(page.locator('[data-testid="gauge-band"][data-on]')).toHaveCount(1);
     await expect(app.$('gaugePtr')).toHaveAttribute('style', /rotate\(131\.6deg\)/);
-    await expect(app.$('gaugePtr')).not.toHaveClass(/off/);
+    await expect(app.$('gaugePtr')).toHaveAttribute('data-visible', 'true');
 
     // limites de zona com FTP 150
     for (const [w, pct, z] of [[82, 55, 1], [84, 56, 2], [112, 75, 2], [115, 77, 3], [134, 89, 3], [135, 90, 4], [158, 105, 4], [159, 106, 5], [400, 267, 5]]) {
@@ -87,7 +87,7 @@ test.describe('painel ao vivo', () => {
     await expect(app.$('watts')).toHaveText('–');
     await expect(app.$('ftpPct')).toHaveText('–');
     await expect(app.$('zone')).toHaveCount(0);
-    await expect(app.$('gaugePtr')).toHaveClass(/off/);
+    await expect(app.$('gaugePtr')).toHaveAttribute('data-visible', 'false');
     await expect(app.$('nosig')).toBeVisible();
     await expect(app.$('reconnect')).toBeVisible();
     await expect(app.$('kcal')).toHaveText('35');
@@ -167,11 +167,11 @@ test.describe('relógio da aula', () => {
     await app.setClock('7 59');
     await app.advance(2000);
     await expect.poll(() => app.states()).toBe('done,now,-,-,-,-');
-    await expect(page.locator('#intervals .goal').nth(1)).toHaveText('180 kcal'); // 36 + 664·8/37
+    await expect(page.getByTestId('interval-goal').nth(1)).toHaveText('180 kcal'); // 36 + 664·8/37
 
     await app.setClock('500');
     expect(await app.states()).toBe('now,-,-,-,-,-');
-    await expect(page.locator('#intervals .goal').nth(1)).toHaveText('249 kcal');
+    await expect(page.getByTestId('interval-goal').nth(1)).toHaveText('249 kcal');
     expect(await app.tickLeft(8)).toBeCloseTo(62.5, 0);
 
     await app.setClock('20:00');
@@ -210,12 +210,12 @@ test.describe('refresh e fim da aula', () => {
     await app.advert({ kcal: 36 });
     await app.card(8).click();
     await app.card(16).click();
-    const goals = await page.locator('#intervals .goal').allTextContents();
+    const goals = await page.getByTestId('interval-goal').allTextContents();
     await app.reload();
     await expect(app.$('live')).toBeVisible();
     await expect(app.$('navLive')).toBeEnabled();
     expect(await app.states()).toBe('done,done,now,-,-,-');
-    await expect(page.locator('#intervals .goal')).toHaveText(goals);
+    await expect(page.getByTestId('interval-goal')).toHaveText(goals);
     expect(await app.tickLeft(24)).not.toBeNull();
     await expect(app.$('kcal')).toHaveText('36');
     await expect.poll(() => app.watchCalls()).toBeGreaterThan(0);
@@ -229,10 +229,10 @@ test.describe('refresh e fim da aula', () => {
     await app.setClock('30:00');
     await app.advert({ kcal: 720 });
     const bonus = app.cards().last();
-    await expect(bonus.locator('.num')).toHaveText('+50kcal');
-    await expect(bonus.locator('.goal')).toHaveText('750 kcal');
+    await expect(bonus.getByTestId('interval-num')).toHaveText('+50kcal');
+    await expect(bonus.getByTestId('interval-goal')).toHaveText('750 kcal');
     await app.advert({ kcal: 760 });
-    await expect(bonus.locator('.goal')).toHaveText('800 kcal');
+    await expect(bonus.getByTestId('interval-goal')).toHaveText('800 kcal');
     await app.setClock('46:00');
     expect((await app.states()).split(',').slice(0, 6).join()).toBe('done,done,done,done,done,done');
     await expect(app.$('fcLabel')).toHaveText('total da aula');

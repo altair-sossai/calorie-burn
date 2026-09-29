@@ -1,6 +1,7 @@
 import { useRuntime } from '../app/context';
 import { SIM_ID } from '../ble/simulator';
 import { bikeName, isSim, type Notice as NoticeData } from '../state/store';
+import s from './BikesView.module.css';
 import { Icon } from './Icon';
 import { StartButton } from './SetupView';
 
@@ -12,10 +13,10 @@ export function BikesView() {
 
   return (
     <div class="col" id="bikes">
-      <div class="conn">
-        <div class="hd">
-          <span class="t"><Icon name="bluetooth" class="sm" /> Buscar</span>
-          <span class={conn.on ? 'pill on' : 'pill'} id="connPill">{conn.text}</span>
+      <div class={s.conn}>
+        <div class={s.hd}>
+          <span class={s.title}><Icon name="bluetooth" class="sm" /> Buscar</span>
+          <span class={conn.on ? `${s.pill} ${s.on}` : s.pill} id="connPill">{conn.text}</span>
         </div>
         {ble.scanMode === 'all' ? (
           <button class="btn ghost" id="scan" disabled><Icon name="bluetooth_searching" /> Ouvindo…</button>
@@ -25,21 +26,21 @@ export function BikesView() {
           <button class="btn ghost" id="scan" onClick={scan}><Icon name="bluetooth_searching" /> Buscar bike</button>
         )}
         {detected.length ? (
-          <div class="biklist" id="detectedList">
+          <div class={s.list} id="detectedList">
             {detected.map((d) => (
-              <div class="bik" key={d.id}>
-                <div class="l">
+              <div class={s.bike} key={d.id} data-testid="detected">
+                <div class={s.left}>
                   <Icon name="directions_bike" />
-                  <span class="name">Bike {d.id}<small>{Math.round(d.rpm)} rpm</small></span>
+                  <span class={s.name} data-testid="bike-name">Bike {d.id}<small>{Math.round(d.rpm)} rpm</small></span>
                 </div>
-                <button class="iconbtn" data-act="add" aria-label={`Adicionar Bike ${d.id}`} onClick={() => store.addBike(d.id)}>
+                <button class={s.iconbtn} data-act="add" aria-label={`Adicionar Bike ${d.id}`} onClick={() => store.addBike(d.id)}>
                   <Icon name="add_circle" />
                 </button>
               </div>
             ))}
           </div>
         ) : (
-          <div class="emptyscan" id="scanHint">
+          <div class={s.empty} id="scanHint">
             Selecione M3 na janela Bluetooth e continue pedalando. As bikes detectadas aparecem aqui; toque em + pra adicionar.
           </div>
         )}
@@ -48,9 +49,9 @@ export function BikesView() {
       {store.notice && <Notice notice={store.notice} />}
 
       {!store.bikes.length && (
-        <p class="emptyscan" id="bikeEmpty">Nenhuma bike sua cadastrada ainda — toque em "Buscar bike" e depois em + pra adicionar.</p>
+        <p class={s.empty} id="bikeEmpty">Nenhuma bike sua cadastrada ainda — toque em "Buscar bike" e depois em + pra adicionar.</p>
       )}
-      <div class="biklist" id="bikeList">
+      <div class={s.list} id="bikeList">
         {mine.map((id) => <BikeRow key={id} id={id} deletable />)}
         <BikeRow id={SIM_ID} />
       </div>
@@ -64,17 +65,17 @@ function BikeRow({ id, deletable }: { id: number; deletable?: boolean }) {
   const { store } = useRuntime();
   const sel = store.cfg.chosen === id;
   return (
-    <div class={sel ? 'bik sel' : 'bik'}>
-      <div class="l" onClick={() => store.selectBike(id)}>
+    <div class={sel ? `${s.bike} ${s.sel}` : s.bike} data-testid="bike" data-selected={sel ? 'true' : undefined}>
+      <div class={s.left} data-testid="bike-select" onClick={() => store.selectBike(id)}>
         <Icon name={isSim(id) ? 'science' : 'directions_bike'} />
-        <span class="name">{bikeName(id)}</span>
+        <span class={s.name} data-testid="bike-name">{bikeName(id)}</span>
       </div>
       {deletable && (
-        <button class="iconbtn" data-act="del" aria-label={`Excluir ${bikeName(id)}`} onClick={(e) => { e.stopPropagation(); store.deleteBike(id); }}>
+        <button class={s.iconbtn} data-act="del" aria-label={`Excluir ${bikeName(id)}`} onClick={(e) => { e.stopPropagation(); store.deleteBike(id); }}>
           <Icon name="delete" class="sm" />
         </button>
       )}
-      {sel && <Icon name="check_circle" class="selic" />}
+      {sel && <Icon name="check_circle" class={s.selIcon} />}
     </div>
   );
 }
@@ -87,9 +88,9 @@ const NO_BLE = (
 );
 
 function Notice({ notice }: { notice: NoticeData }) {
-  if (notice.kind === 'noBle') return <div class="notice" id="notice">{NO_BLE}</div>;
+  if (notice.kind === 'noBle') return <div class={s.notice} id="notice">{NO_BLE}</div>;
   return (
-    <div class="notice" id="notice">
+    <div class={s.notice} id="notice">
       <b>Erro Bluetooth ({notice.name})</b>
       <br />
       {notice.message}

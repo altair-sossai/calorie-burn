@@ -2,6 +2,7 @@ import { useRuntime } from '../app/context';
 import { fmtClassTime, parseClassTime } from '../domain/classTime';
 import { parseFtpInput } from '../domain/inputs';
 import type { View } from '../state/store';
+import s from './Header.module.css';
 import { Icon } from './Icon';
 
 const TITLES: Record<View, string> = { setup: 'Configurar', bikes: 'Bikes', live: 'Ritmo de Queima' };
@@ -31,13 +32,13 @@ export function Header() {
   };
 
   return (
-    <header>
-      <div class="brand">
-        <div class="flame"><Icon name="local_fire_department" /></div>
+    <header class={s.header}>
+      <div class={s.brand}>
+        <div class={s.flame}><Icon name="local_fire_department" /></div>
         {/* no painel o topo tem 5 botões e o nome do app não cabe no celular: fica só a chama */}
         {view !== 'live' && <h1 id="title">{TITLES[view]}</h1>}
       </div>
-      <nav class="nav">
+      <nav class={s.nav} data-testid="nav">
         <NavButton id="navSetup" icon="tune" label="Configurar" active={view === 'setup'} onClick={() => store.nav('setup')} />
         <NavButton id="navBikes" icon="directions_bike" label="Bikes" active={view === 'bikes'} onClick={() => store.nav('bikes')} />
         <NavButton id="navLive" icon="monitoring" label="Painel" active={view === 'live'} disabled={!store.session} onClick={() => store.nav('live')} />
@@ -50,7 +51,7 @@ export function Header() {
 
 function NavButton(p: { id: string; icon: string; label: string; active?: boolean; disabled?: boolean; onClick: () => void }) {
   return (
-    <button class={p.active ? 'navbtn active' : 'navbtn'} id={p.id} title={p.label} aria-label={p.label} disabled={p.disabled} onClick={p.onClick}>
+    <button class={p.active ? `${s.navbtn} ${s.active}` : s.navbtn} id={p.id} title={p.label} aria-label={p.label} disabled={p.disabled} onClick={p.onClick}>
       <Icon name={p.icon} />
     </button>
   );

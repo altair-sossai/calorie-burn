@@ -59,7 +59,7 @@ Caixas nativas, **bloqueantes** (o JavaScript para até a pessoa responder). Nor
 el.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
 ```
 
-Rola a lista de marcos até o último concluído. `offsetTop` é a distância do elemento até o topo do container posicionado (`.intervals` tem `position:relative`).
+Rola a lista de marcos até o último concluído. `offsetTop` é a distância do elemento até o topo do container posicionado (a lista `#intervals` tem `position:relative` no `IntervalList.module.css`).
 
 ## `AbortController`
 

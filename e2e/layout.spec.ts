@@ -11,18 +11,18 @@ for (const width of [320, 360, 375, 390, 420]) {
     };
 
     expect(await noHorizontalScroll()).toBe(true);
-    expect(await inside('.nav', '.phone')).toBe(true);
+    expect(await inside('[data-testid="nav"]', '[data-testid="phone"]')).toBe(true);
 
     await app.startWithSim();
     await app.setClock('12:34');
     await expect(app.$('zone')).toBeVisible();
     expect(await noHorizontalScroll()).toBe(true);
-    expect(await inside('.nav', '.phone')).toBe(true);
+    expect(await inside('[data-testid="nav"]', '[data-testid="phone"]')).toBe(true);
     // a linha de cima do painel (bike, tempo, zona) cabe no cartão
-    expect(await inside('#bikepanel .hd .r', '#bikepanel')).toBe(true);
+    expect(await inside('[data-testid="panel-status"]', '#bikepanel')).toBe(true);
     expect(await inside('#classTime', '#bikepanel')).toBe(true);
     // velocímetro não invade o giro
-    const [gauge, rpm] = await Promise.all([page.locator('.gauge').boundingBox(), page.locator('.rpmnow').boundingBox()]);
+    const [gauge, rpm] = await Promise.all([page.getByTestId('gauge').boundingBox(), page.getByTestId('rpm-box').boundingBox()]);
     expect(gauge!.x + gauge!.width).toBeLessThanOrEqual(rpm!.x + 1);
   });
 }

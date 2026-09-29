@@ -62,11 +62,11 @@ export class AppDriver {
 
   async open() {
     await this.page.goto('/');
-    await expect(this.page.locator('.phone')).toBeVisible();
+    await expect(this.page.getByTestId('phone')).toBeVisible();
   }
   async reload() {
     await this.page.reload();
-    await expect(this.page.locator('.phone')).toBeVisible();
+    await expect(this.page.getByTestId('phone')).toBeVisible();
   }
   /** avança o relógio do app (Date.now) */
   async advance(ms: number) {
@@ -97,16 +97,16 @@ export class AppDriver {
     await this.$('navClock').click();
   }
   cards() {
-    return this.page.locator('#intervals .ivl');
+    return this.page.locator('#intervals').getByTestId('interval');
   }
   card(num: number | string) {
-    return this.page.locator('#intervals .ivl').filter({ has: this.page.locator('.num', { hasText: new RegExp(`^${num}`) }) });
+    return this.cards().filter({ has: this.page.getByTestId('interval-num').filter({ hasText: new RegExp(`^${num}`) }) });
   }
   async states(): Promise<string> {
-    return (await this.cards().evaluateAll((els) => els.map((e) => (e.classList.contains('done') ? 'done' : e.classList.contains('now') ? 'now' : '-')))).join(',');
+    return (await this.cards().evaluateAll((els) => els.map((e) => { const st = e.getAttribute('data-state'); return st === 'locked' ? '-' : st; }))).join(',');
   }
   async tickLeft(num: number): Promise<number | null> {
-    const t = this.card(num).locator('.tick');
+    const t = this.card(num).getByTestId('interval-tick');
     return (await t.count()) ? parseFloat((await t.getAttribute('style'))!.replace(/[^\d.]/g, '')) : null;
   }
   /** cadastra a Bike 7 pelo Bluetooth falso e seleciona */
@@ -115,11 +115,11 @@ export class AppDriver {
     await this.$('scan').click();
     await this.advert({ id: 7 });
     await this.page.locator('#detectedList [data-act="add"]').click();
-    await this.page.locator('#bikeList .bik .l', { hasText: 'Bike 7' }).click();
+    await this.page.locator('#bikeList').getByTestId('bike-select').filter({ hasText: 'Bike 7' }).click();
   }
   async startWithSim() {
     await this.$('navBikes').click();
-    await this.page.locator('#bikeList .bik .l', { hasText: 'Bike simulada' }).click();
+    await this.page.locator('#bikeList').getByTestId('bike-select').filter({ hasText: 'Bike simulada' }).click();
     await this.$('startBtnBikes').click();
   }
 }

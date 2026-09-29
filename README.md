@@ -113,7 +113,7 @@ src/
   state/       estado do app e ações (store.ts) e localStorage (storage.ts)
   app/         runtime: liga o estado ao Bluetooth, ao relógio de 1 s, ao wake lock e aos eventos da página
   components/  telas (Preact): Header, SetupView, BikesView, LiveView, BikePanel, FtpGauge, IntervalList, Forecast
-  styles.css   o tema (mesmas cores e tamanhos da versão de arquivo único)
+  global.css   cores, base da página, ícones e botões; o resto do estilo fica em components/*.module.css (CSS Modules)
 e2e/           testes de fluxo com um Bluetooth falso que manda pacotes Keiser de verdade e um relógio controlável
 scripts/       screenshots.mjs (prints do README)
 ```

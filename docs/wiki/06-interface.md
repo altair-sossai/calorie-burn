@@ -64,14 +64,22 @@ Um `useEffect` com dependência `[s.confirmedIdx]` rola a lista pra deixar o úl
 
 - `live = store.showBike()` (20 s): define rpm/watts/%FTP ou "–".
 - `#classTime` só com relógio acertado; `#zone` só com %FTP; `#nosig` e `#reconnect` só sem sinal (Reconectar não aparece pra bike simulada).
-- Com FTP 0 o velocímetro some e a grade `.headline` perde a classe `wide`.
+- Com FTP 0 o velocímetro some e a grade do topo perde a classe `wide` (coluna maior pro velocímetro).
 
-## CSS (`src/styles.css`)
+## Estilos: `global.css` + um `*.module.css` por componente
 
-- **Tokens** em `:root`: `--ground`, `--surface`, `--line`, `--text`, `--muted`, `--red`, `--good`, `--bad`, `--gold`…
+```
+src/global.css                        cores (:root), base da página, ícones (.mi), botões (.btn), .col
+src/components/FtpGauge.tsx           o componente
+src/components/FtpGauge.module.css    o estilo só dele
+```
+
+- **Global** (`src/global.css`, importado no `main.tsx`): as **variáveis de cor** (`--ground`, `--surface`, `--text`, `--red`, `--good`… e as zonas `--z1`…`--z5`), a base (`body`, `#app`), o ícone `.mi`, os botões `.btn`/`.btn.ghost` e a coluna `.col` — o que várias telas usam. No JSX são classes de texto: `class="btn ghost"`.
+- **Por componente** (`*.module.css`): **CSS Modules**. O componente faz `import s from './FtpGauge.module.css'` e usa `class={s.pct}`. No build a classe vira algo como `_pct_1x2y3`, então um `.num` do velocímetro nunca esbarra no `.num` dos marcos. Detalhes na [página 17](17-svg-e-css.md#css-modules-um-arquivo-por-componente).
+- **Cor da zona:** o `BikePanel` põe `data-zone="4"` no painel; o `BikePanel.module.css` traduz pra `--zc: var(--z4)`; o selo e o % do velocímetro (`fill: var(--zc, var(--text))`) herdam.
+- **Ganchos de teste:** como os nomes das classes mudam, os testes nunca usam classe — usam `id` (`#rpm`, `#intervals`), `data-testid` (`interval`, `interval-goal`, `bike-name`, `gauge-band`…) e atributos de estado (`data-state="done"`, `data-selected`, `data-on`, `data-visible`).
 - Fontes: **Oswald** (números e títulos), **Barlow** (texto), **Material Symbols** (ícones por ligadura: `<span class="mi">schedule</span>` vira o desenho do relógio — é o componente `Icon`).
-- `.phone` é o "cartão" de no máximo 420 px; `#app` ocupa a largura toda pra ele centralizar.
-- Zonas: `.bikepanel[data-zone="4"]{--zc:#eae20c}` etc.
+- O `.phone` do `App.module.css` é o "cartão" de no máximo 420 px; `#app` (global) ocupa a largura toda pra ele centralizar.
 
 ## Exercícios
 

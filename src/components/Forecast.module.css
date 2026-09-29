@@ -1,0 +1,13 @@
+/* rodapé fixo da aula: previsão de kcal no fim, no ritmo médio da aula até agora */
+.forecast{flex:0 0 auto;display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 13px}
+.icon{font-size:30px;color:var(--gold);font-variation-settings:"FILL" 1}
+.text{flex:1;min-width:0}
+.label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.kcal{font-family:"Oswald",sans-serif;font-weight:700;font-size:30px;line-height:1.05;font-variant-numeric:tabular-nums}
+.kcal small{font-size:15px;font-weight:600;color:var(--muted)}
+
+/* diferença pra meta: verde acima, vermelho abaixo */
+.diff{font-family:"Oswald",sans-serif;font-weight:700;font-size:23px;padding:6px 12px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap;text-align:center;line-height:1.15}
+.diff small{display:block;font-family:"Barlow",sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.diff.up{background:var(--good-dim);color:var(--good)}
+.diff.down{background:var(--bad-dim);color:var(--bad)}

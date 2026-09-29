@@ -1,0 +1,16 @@
+/* velocímetro de %FTP: cada zona ocupa a mesma fatia do arco, pra dar pra ver onde você está dentro dela */
+.gauge{display:block;width:100%;max-width:250px;margin:0 auto;overflow:visible}
+
+.band{fill:none;stroke-width:18;opacity:.22;transition:opacity .3s}
+.band.on{opacity:1}
+.z1{stroke:var(--z1)} .z2{stroke:var(--z2)} .z3{stroke:var(--z3)} .z4{stroke:var(--z4)} .z5{stroke:var(--z5)}
+.label{font-family:"Barlow",sans-serif;font-size:11px;font-weight:600;fill:var(--muted);text-anchor:middle;dominant-baseline:middle}
+
+/* o % no centro pega a cor da zona (--zc vem do painel); sem zona, a cor do texto */
+.pct{font-family:"Oswald",sans-serif;font-weight:700;font-size:42px;fill:var(--zc, var(--text));text-anchor:middle}
+.pctSign{font-size:20px;font-weight:600}
+
+/* o ponteiro nasce apontando pra esquerda (0°) e gira em volta do centro do arco (100,100) */
+.pointer{transform-box:view-box;transform-origin:100px 100px;transition:transform .6s cubic-bezier(.3,.9,.4,1),opacity .3s}
+.pointer polygon{fill:#fff;stroke:var(--surface);stroke-width:2;stroke-linejoin:round}
+.pointer.off{opacity:0}

@@ -29,7 +29,7 @@ Passo a passo das mudanças mais comuns. Em todas: **teste primeiro no domínio*
 
 1. O dado já existe: `store.live.hr` (vem do byte 6–7 do pacote).
 2. `src/components/BikePanel.tsx`: adicione um bloco `.stat` (copie o de watts) com `id="hr"` e `live ? Math.round(store.live.hr) : '–'`.
-3. `src/styles.css`: se forem 3 estatísticas, `.stats{grid-template-columns:repeat(3,1fr)}` e diminua `.stat .v`.
+3. `src/components/BikePanel.module.css`: se forem 3 estatísticas, `.stats{grid-template-columns:repeat(3,1fr)}` e diminua `.stat .value`. No teste, use um `id` ou `data-testid` novo — nunca a classe (o nome muda no build).
 4. `e2e/layout.spec.ts` pega se algo estourar em 320 px; adicione um `expect(app.$('hr'))` em `live.spec.ts`.
 
 ## Mudar o formato de algo salvo (migração)

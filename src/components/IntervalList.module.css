@@ -1,0 +1,33 @@
+.list{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;position:relative}
+
+.card{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px}
+.card.now{border-color:var(--red-hi)}
+.card.done{border-color:var(--good);background:var(--good-dim)}
+.card.locked{opacity:.45}
+.card.clickable{cursor:pointer}
+.card.clickable:active{transform:scale(.985)}
+
+/* minuto do marco */
+.num{font-family:"Oswald",sans-serif;font-weight:700;font-size:30px;line-height:1;color:var(--text);text-align:center;flex:0 0 auto;min-width:56px}
+.num small{display:block;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:3px}
+.now .num{color:var(--red-hi)}
+.done .num,.done .num small{color:var(--good)}
+
+.info{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+
+/* barra da kcal do bloco */
+.bar{height:8px;border-radius:999px;background:var(--surface-2);position:relative}
+.fill{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--red-hi),var(--red));transition:width .4s}
+.done .fill{background:linear-gradient(90deg,#16a34a,var(--good))}
+/* risco de referência: onde você deveria estar no bloco, pelo relógio da aula */
+.tick{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;border-radius:2px;background:#fff;box-shadow:0 0 0 1.5px var(--surface)}
+
+/* meta cumulativa e quanto falta no bloco */
+.goals{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.goal{font-family:"Oswald",sans-serif;font-weight:700;font-size:26px;line-height:1;color:var(--text);white-space:nowrap;font-variant-numeric:tabular-nums}
+.delta{font-family:"Oswald",sans-serif;font-weight:600;font-size:20px;line-height:1;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.now .delta{color:var(--text)}
+.done .delta{color:var(--good)}
+
+.check{font-size:22px;color:var(--line);flex:0 0 auto}
+.done .check{color:var(--good)}

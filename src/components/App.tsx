@@ -1,6 +1,7 @@
 import { useEffect, useReducer } from 'preact/hooks';
 import { RuntimeContext } from '../app/context';
 import type { Runtime } from '../app/runtime';
+import s from './App.module.css';
 import { BikesView } from './BikesView';
 import { Header } from './Header';
 import { LiveView } from './LiveView';
@@ -13,14 +14,14 @@ export function App({ runtime }: { runtime: Runtime }) {
 
   return (
     <RuntimeContext.Provider value={runtime}>
-      <div class="phone">
+      <div class={s.phone} data-testid="phone">
         <Header />
-        <div class="stage">
+        <div class={s.stage}>
           {view === 'setup' && <SetupView />}
           {view === 'bikes' && <BikesView />}
           {view === 'live' && <LiveView />}
         </div>
-        <footer class="app-version">Versão {__APP_VERSION__}</footer>
+        <footer class={s.version}>Versão {__APP_VERSION__}</footer>
       </div>
     </RuntimeContext.Provider>
   );

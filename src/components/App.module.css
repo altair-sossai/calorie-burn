@@ -1,0 +1,9 @@
+/* o "cartão" do app: no máximo 420 px de largura e 880 de altura */
+.phone{
+  width:100%; max-width:420px;
+  height:min(880px, calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+  background:var(--ground); border:1px solid var(--line); border-radius:28px;
+  box-shadow:var(--shadow); overflow:hidden; display:flex; flex-direction:column; position:relative;
+}
+.stage{flex:1 1 auto;display:flex;flex-direction:column;padding:0 18px 18px;overflow-y:auto}
+.version{flex:0 0 auto;text-align:center;padding:8px 16px 10px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}

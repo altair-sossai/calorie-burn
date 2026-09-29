@@ -1,4 +1,5 @@
 import { gaugeFrac, gaugeGeometry, type Zone } from '../domain/zones';
+import s from './FtpGauge.module.css';
 
 const GEOMETRY = gaugeGeometry();
 
@@ -6,16 +7,30 @@ const GEOMETRY = gaugeGeometry();
 export function FtpGauge({ pct, zone }: { pct: number | null; zone: Zone | null }) {
   const deg = pct != null && zone != null ? gaugeFrac(pct, zone) * 180 : 0;
   return (
-    <svg class="gauge" viewBox="-4 -8 208 114" role="img" aria-label="Percentual do FTP">
+    <svg class={s.gauge} viewBox="-4 -8 208 114" role="img" aria-label="Percentual do FTP" data-testid="gauge">
       <g id="gaugeBands">
-        {GEOMETRY.bands.map((b) => <path key={b.zone} class={`band z${b.zone}${b.zone === zone ? ' on' : ''}`} d={b.d} />)}
-        {GEOMETRY.labels.map((l) => <text key={l.text} class="lbl" x={l.x} y={l.y}>{l.text}</text>)}
+        {GEOMETRY.bands.map((b) => (
+          <path
+            key={b.zone}
+            class={`${s.band} ${s[`z${b.zone}`]}${b.zone === zone ? ` ${s.on}` : ''}`}
+            d={b.d}
+            data-testid="gauge-band"
+            data-zone={b.zone}
+            data-on={b.zone === zone ? 'true' : undefined}
+          />
+        ))}
+        {GEOMETRY.labels.map((l) => <text key={l.text} class={s.label} x={l.x} y={l.y}>{l.text}</text>)}
       </g>
-      <text class="num" x="100" y="100">
+      <text class={s.pct} x="100" y="100">
         <tspan id="ftpPct">{pct ?? '–'}</tspan>
-        <tspan class="pc" dx="1">%</tspan>
+        <tspan class={s.pctSign} dx="1">%</tspan>
       </text>
-      <g class={pct == null ? 'ptr off' : 'ptr'} id="gaugePtr" style={{ transform: `rotate(${deg.toFixed(1)}deg)` }}>
+      <g
+        class={pct == null ? `${s.pointer} ${s.off}` : s.pointer}
+        id="gaugePtr"
+        data-visible={pct == null ? 'false' : 'true'}
+        style={{ transform: `rotate(${deg.toFixed(1)}deg)` }}
+      >
         <polygon points="4,100 38,94 38,106" />
       </g>
     </svg>

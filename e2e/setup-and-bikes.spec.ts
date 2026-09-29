@@ -34,7 +34,7 @@ test.describe('Bikes', () => {
   test('buscar, adicionar, selecionar e excluir pelo Bluetooth', async ({ app, page }) => {
     await app.open();
     await app.$('navBikes').click();
-    await expect(page.locator('#bikeList .name')).toHaveText(['Bike simulada']);
+    await expect(page.locator('#bikeList').getByTestId('bike-name')).toHaveText(['Bike simulada']);
     await expect(app.$('bikeEmpty')).toBeVisible();
     await expect(app.$('scanHint')).toBeVisible();
 
@@ -42,23 +42,23 @@ test.describe('Bikes', () => {
     await expect(app.$('scan')).toContainText('Adicionar outra');
     await expect(app.$('connPill')).toHaveText('ouvindo bikes');
     await app.advert({ id: 7, rpm: 71.6 });
-    await expect(page.locator('#detectedList .name')).toHaveText('Bike 7' + '72 rpm'); // nome + giro arredondado embaixo
+    await expect(page.locator('#detectedList').getByTestId('bike-name')).toHaveText('Bike 7' + '72 rpm'); // nome + giro arredondado embaixo
 
     await page.locator('#detectedList [data-act="add"]').click();
-    await expect(page.locator('#bikeList .name')).toHaveText(['Bike 7', 'Bike simulada']);
+    await expect(page.locator('#bikeList').getByTestId('bike-name')).toHaveText(['Bike 7', 'Bike simulada']);
     await expect(app.$('detectedList')).toHaveCount(0);
     await expect(app.$('bikeEmpty')).toHaveCount(0);
 
-    await page.locator('#bikeList .bik .l', { hasText: 'Bike 7' }).click();
-    await expect(page.locator('#bikeList .bik.sel .name')).toHaveText('Bike 7');
+    await page.locator('#bikeList').getByTestId('bike-select').filter({ hasText: 'Bike 7' }).click();
+    await expect(page.locator('#bikeList [data-selected] [data-testid="bike-name"]')).toHaveText('Bike 7');
     await app.advert({ id: 7 });
     await expect(app.$('connPill')).toHaveText('Bike 7');
 
     await app.advert({ id: 9 });
-    await expect(page.locator('#detectedList .name')).toHaveText(/^Bike 9/);
+    await expect(page.locator('#detectedList').getByTestId('bike-name')).toHaveText(/^Bike 9/);
 
     await page.locator('#bikeList [data-act="del"]').click();
-    await expect(page.locator('#bikeList .name')).toHaveText(['Bike simulada']);
+    await expect(page.locator('#bikeList').getByTestId('bike-name')).toHaveText(['Bike simulada']);
     await app.$('navSetup').click();
     await expect(app.$('bikeLineTxt')).toHaveText('Nenhuma bike selecionada');
   });
@@ -67,7 +67,7 @@ test.describe('Bikes', () => {
     await page.addInitScript(() => localStorage.setItem('ritmoQueimaBikes', JSON.stringify([{ bikeId: 3, name: 'x' }, 12])));
     await app.open();
     await app.$('navBikes').click();
-    await expect(page.locator('#bikeList .name')).toHaveText(['Bike 3', 'Bike 12', 'Bike simulada']);
+    await expect(page.locator('#bikeList').getByTestId('bike-name')).toHaveText(['Bike 3', 'Bike 12', 'Bike simulada']);
   });
 
   test('bike simulada gera leitura no painel', async ({ app }) => {

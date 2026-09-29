@@ -63,7 +63,7 @@ src/
   state/         AppStore (estado + ações) e localStorage    → página 5
   app/           runtime: liga tudo (relógio de 1 s, eventos) → páginas 2 e 5
   components/    telas em Preact                              → página 6
-  styles.css     tema                                         → página 6
+  global.css     cores e estilos globais (+ components/*.module.css) → páginas 6 e 17
   testing/       utilitários dos testes unitários             → página 7
 e2e/             testes de fluxo (Playwright)                 → página 7
 scripts/         screenshots.mjs                              → página 8

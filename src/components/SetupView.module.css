@@ -1,0 +1,16 @@
+/* minmax(0,…): os campos não estouram a coluna em telas de 320px */
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px}
+.field input{
+  width:100%;background:var(--surface-2);border:1px solid var(--line);color:var(--text);
+  border-radius:11px;padding:12px 13px;font-family:"Oswald",sans-serif;font-size:20px;font-weight:500;font-variant-numeric:tabular-nums;
+}
+.field input:focus{outline:none;border-color:var(--red)}
+
+.bikeline{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 13px;font-size:14px;color:var(--muted)}
+.bikeline b{color:var(--text);font-family:"Oswald",sans-serif}
+.linkbtn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:"Barlow",sans-serif;padding:0;display:flex;align-items:center;gap:5px}
+.linkbtn span:last-child{text-decoration:underline}
+.bikeline .linkbtn{margin-left:auto}
