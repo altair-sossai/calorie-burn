@@ -4,6 +4,21 @@
 
 Painel de ritmo de calorias para bike indoor **Keiser M3**, com leitura ao vivo por Bluetooth. App 100% front-end (HTML/CSS/JS puro, sem dependências e sem build), pensado para uso no celular em uma única tela.
 
+**▶ Abrir o app: https://altair-sossai.github.io/calorie-burn/** (no iPhone, abra pelo navegador Bluefy — veja [Compatibilidade](#compatibilidade-importante))
+
+<table>
+  <tr>
+    <td align="center"><img src="screenshots/live.png" width="260" alt="Painel ao vivo: velocímetro de %FTP, rpm, kcal, watts, marcos e previsão"></td>
+    <td align="center"><img src="screenshots/setup.png" width="260" alt="Tela de configuração da aula"></td>
+    <td align="center"><img src="screenshots/bikes.png" width="260" alt="Tela de bikes via Bluetooth"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Painel ao vivo</b></td>
+    <td align="center"><b>Configurar</b></td>
+    <td align="center"><b>Bikes</b></td>
+  </tr>
+</table>
+
 ## O que faz
 
 Dada uma **kcal inicial** (o que já está no mostrador da bike), uma **meta de calorias**, o **tempo da aula** e um **intervalo** em minutos, o app quebra a aula em blocos (ex. a cada 8 min) e mostra, pra cada um, a meta cumulativa e quanto falta fazer naquele bloco especificamente.
@@ -81,5 +96,5 @@ Suba a pasta em Netlify, Vercel, Cloudflare Pages ou GitHub Pages. Todos servem 
 ## Arquivos
 
 - `index.html` — o app completo (marcação, estilos e script inline).
-- `keiser-m3.html` — painel de referência (multi-bike) que inspirou a leitura BLE.
+- `screenshots/` — prints de tela usados neste README (gerados com a Bike simulada).
 - As fontes (Oswald + Barlow + Material Symbols) vêm do Google Fonts, com fallback de sistema.
