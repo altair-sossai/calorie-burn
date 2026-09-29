@@ -1,0 +1,29 @@
+{
+  "name": "ritmo-de-queima",
+  "private": true,
+  "version": "4.0.0",
+  "description": "Painel de ritmo de calorias por intervalos para bike indoor Keiser M3, com leitura ao vivo por Bluetooth.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "check": "npm run typecheck && npm test && npm run test:e2e",
+    "screenshots": "vite build && node scripts/screenshots.mjs"
+  },
+  "dependencies": {
+    "preact": "^10.29.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^26.6.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  }
+}

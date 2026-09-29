@@ -2,7 +2,7 @@
 
 > 🤖 Esta é uma aplicação **vibecodada** — construída de forma conversacional, iterando com IA em vez de escrita manual tradicional.
 
-Painel de ritmo de calorias para bike indoor **Keiser M3**, com leitura ao vivo por Bluetooth. App 100% front-end (HTML/CSS/JS puro, sem dependências e sem build), pensado para uso no celular em uma única tela.
+Painel de ritmo de calorias para bike indoor **Keiser M3**, com leitura ao vivo por Bluetooth. App 100% front-end (Vite + TypeScript + Preact, gera arquivos estáticos), pensado para uso no celular em uma única tela.
 
 **▶ Abrir o app: https://altair-sossai.github.io/calorie-burn/** (no iPhone, abra pelo navegador Bluefy — veja [Compatibilidade](#compatibilidade-importante))
 
@@ -25,7 +25,7 @@ Dada uma **kcal inicial** (o que já está no mostrador da bike), uma **meta de 
 
 A confirmação começa **manual**: de olho no relógio da aula, você toca no marco atual (ex. minuto 8) quando chega nele — só dá pra confirmar o próximo da fila, em sequência, e só dá pra desfazer o último confirmado (pra corrigir um toque errado).
 
-Cada toque manual **acerta um relógio de referência** (o toque no marco 8 = minuto 8 da aula). O tempo em si não aparece em lugar nenhum: ele só alimenta um **risco vertical** em cima da barra de kcal do marco atual, que mostra onde você deveria estar no bloco (4 min depois do toque no 8, o risco está na metade do bloco 8→16). Quando o risco chega ao fim, o marco é **concluído sozinho** e o app já recalcula e passa pro próximo. Tocar de novo num marco reacerta o relógio; desfazer um marco para o relógio até o próximo toque.
+Cada toque manual **acerta um relógio de referência** (o toque no marco 8 = minuto 8 da aula). Com o relógio acertado, o **tempo da aula** (MM:SS) aparece no topo do painel, ao lado do selo da zona, e alimenta um **risco vertical** em cima da barra de kcal do marco atual, que mostra onde você deveria estar no bloco (4 min depois do toque no 8, o risco está na metade do bloco 8→16). Quando o risco chega ao fim, o marco é **concluído sozinho** e o app já recalcula e passa pro próximo. Tocar de novo num marco reacerta o relógio; desfazer um marco para o relógio até o próximo toque.
 
 Também dá pra acertar o relógio sem esperar o primeiro marco: no painel ao vivo há um **botão de relógio** no topo, que pede o tempo da aula agora. Pra facilitar a digitação, aceita `02:45`, `2:45`, `02 45`, `2 45`, `0245` (MMSS) e `245` (MSS) — todos = 2 min 45 s. Só dígitos com 3 ou mais casas: os 2 últimos são os segundos; com 1 ou 2 casas, é só minutos (ex. `3` = 3 min). O risco já aparece no marco atual — no primeiro, logo no começo da aula — e a previsão começa na hora. O prompt já vem preenchido com o tempo que o app estima, pra conferir ou corrigir. O tempo digitado manda nos marcos: os que terminam até esse tempo ficam concluídos (os que faltavam são concluídos sozinhos, como no avanço normal) e os já confirmados que terminam depois dele são **desmarcados**, voltando as metas ao que eram antes deles — ex. com 8 e 16 confirmados, digitar `10:00` desmarca o 16 e o risco fica em 25% do bloco 8→16. Tocar num marco continua acertando o relógio do mesmo jeito.
 
@@ -85,18 +85,46 @@ No iPhone (Bluefy), travar a tela ou recarregar a página costuma interromper a 
 - **Tela acesa durante a aula** (Screen Wake Lock, onde o navegador suportar), pra evitar o bloqueio automático.
 - No refresh/fechamento (`pagehide`), a escuta é liberada pra que a página nova consiga assumir a bike na hora.
 
-## Como rodar localmente
+## Desenvolvimento
+
+Requer **Node 22+**.
 
 ```bash
-npx serve .
+npm install          # uma vez
+npm run dev          # http://localhost:5173, atualiza sozinho ao salvar
+npm test             # testes de lógica (Vitest)
+npm run test:e2e     # testes de fluxo no navegador (Playwright, usa o Chrome instalado)
+npm run check        # tipos + todos os testes — rode antes de publicar
+npm run build        # gera dist/ (o que vai pro ar)
+npm run preview      # serve o dist/ localmente
+npm run screenshots  # regera os prints do README
 ```
 
-## Como hospedar
+O Bluetooth funciona em `localhost` no Chrome/Edge do computador. No celular (Bluefy) o Web Bluetooth exige HTTPS: teste pela versão publicada ou use a **Bike simulada**.
 
-Suba a pasta em Netlify, Vercel, Cloudflare Pages ou GitHub Pages. Todos servem via **HTTPS** por padrão — necessário para o Bluetooth. O `index.html` é o ponto de entrada.
+### Estrutura
 
-## Arquivos
+```
+src/
+  domain/      cálculos puros: marcos e recálculo, relógio/tempo digitado, previsão, zonas de FTP, sessão da aula
+  ble/         Bluetooth: pacote Keiser (keiser.ts), escuta e reconexão (bluetooth.ts), bike simulada
+  state/       estado do app e ações (store.ts) e localStorage (storage.ts)
+  app/         runtime: liga o estado ao Bluetooth, ao relógio de 1 s, ao wake lock e aos eventos da página
+  components/  telas (Preact): Header, SetupView, BikesView, LiveView, BikePanel, FtpGauge, IntervalList, Forecast
+  styles.css   o tema (mesmas cores e tamanhos da versão de arquivo único)
+e2e/           testes de fluxo com um Bluetooth falso que manda pacotes Keiser de verdade e um relógio controlável
+scripts/       screenshots.mjs (prints do README)
+```
 
-- `index.html` — o app completo (marcação, estilos e script inline).
-- `screenshots/` — prints de tela usados neste README (gerados com a Bike simulada).
-- As fontes (Oswald + Barlow + Material Symbols) vêm do Google Fonts, com fallback de sistema.
+A regra é: **cálculo em `domain/`, com teste em `*.test.ts` ao lado**; tela em `components/` só lendo o estado e chamando ações do `store`. Os dados salvos no navegador (`ritmoQueimaCfg`, `ritmoQueimaBikes`, `ritmoQueimaAula`) têm o mesmo formato da versão antiga, então bikes, configuração e aula em andamento continuam valendo.
+
+### Testes
+
+- **Vitest** (`src/**/*.test.ts`): marcos e recálculo, relógio e formatos de tempo, previsão, zonas e ponteiro, pacote Keiser, Bluetooth (seletor, reconexão), armazenamento (inclusive formato antigo) e o fluxo da aula no `store`.
+- **Playwright** (`e2e/`): o app de verdade (build de produção) no navegador — cadastro de bikes, painel, velocímetro nos limites de zona, sinal segurado por 20 s, relógio, toque nos marcos, FTP, refresh no meio da aula, meta passada, fim da aula, layout de 320 a 420 px e ausência de erros de JavaScript.
+
+## Publicação
+
+O workflow `.github/workflows/ci.yml` roda tipos + testes em todo push/PR e, num push na `main` com tudo verde, publica o `dist/` no **GitHub Pages**. Para isso, em **Settings → Pages → Build and deployment → Source**, escolha **GitHub Actions** (uma vez só).
+
+O `dist/` é estático com caminhos relativos: também dá pra subir em Netlify, Vercel ou Cloudflare Pages. Todos servem via **HTTPS**, necessário para o Bluetooth. As fontes (Oswald + Barlow + Material Symbols) vêm do Google Fonts, com fallback de sistema.

@@ -1,0 +1,40 @@
+// Gera os prints do README (screenshots/*.png) a partir do build, com a Bike simulada e uma aula no meio.
+// Uso: npm run screenshots   (roda o build antes)
+import { chromium } from '@playwright/test';
+import { preview } from 'vite';
+
+const server = await preview({ preview: { port: 4175, strictPort: true } });
+const base = 'http://localhost:4175/';
+const browser = await chromium.launch(process.env.CI ? {} : { channel: 'chrome' });
+
+// aula de 45 min, meta 700, blocos de 8; marcos 8 e 16 confirmados (no 16 a kcal real era 272) e relógio em 19:30
+function seed(view) {
+  localStorage.clear();
+  localStorage.setItem('ritmoQueimaCfg', JSON.stringify({ goal: 700, total: 45, interval: 8, startKcal: 0, ftp: 215, chosen: -1 }));
+  localStorage.setItem('ritmoQueimaBikes', JSON.stringify([7, 12]));
+  if (view !== 'live') return;
+  const goal = 700, total = 45, ends = [8, 16, 24, 32, 40, 45];
+  let prevT = 0, prevG = 0;
+  const iv = ends.map((t) => { const g = (goal * t) / total; const o = { start: prevT, end: t, baseline: prevG, goal: g }; prevT = t; prevG = g; return o; });
+  const actual = 272, fromT = 16, remT = total - fromT, remK = goal - actual;
+  let pg = actual;
+  for (let j = 2; j < iv.length; j++) { const g = actual + (remK * (iv[j].end - fromT)) / remT; iv[j].baseline = pg; iv[j].goal = g; pg = g; }
+  const now = Date.now();
+  localStorage.setItem('ritmoQueimaAula', JSON.stringify({ startedAt: now - 19.5 * 60000, intervals: iv, confirmedIdx: 2, history: [], clock: { at: now - 3.5 * 60000, min: 16 }, kcal: 330 }));
+}
+
+for (const view of ['live', 'setup', 'bikes']) {
+  const page = await browser.newPage({ viewport: { width: 452, height: 904 }, deviceScaleFactor: 2 });
+  await page.addInitScript(seed, view);
+  await page.goto(base);
+  await page.addStyleTag({ content: '*{transition:none!important}' });
+  if (view === 'bikes') await page.click('#navBikes');
+  await page.waitForTimeout(2500); // leituras da bike simulada + fontes
+  if (view === 'live') await page.evaluate(() => { const b = document.getElementById('intervals'); b.scrollTop = b.children[1].offsetTop; });
+  await page.screenshot({ path: `screenshots/${view}.png` });
+  await page.close();
+  console.log(`screenshots/${view}.png`);
+}
+
+await browser.close();
+server.httpServer.close();
