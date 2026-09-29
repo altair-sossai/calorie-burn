@@ -32,7 +32,7 @@ Durante a aula, com a bike conectada, você não digita nada — só confirma os
 
 ### %FTP e zonas
 
-O painel ao vivo mostra o **%FTP** — watts de agora divididos pelo FTP configurado (FTP 150 pedalando a 150 W = 100%; a 300 W = 200%). O número do %FTP e o selo "Zona N" no topo do painel ganham a cor da zona correspondente:
+O painel ao vivo mostra o **%FTP** — watts de agora divididos pelo FTP configurado (FTP 150 pedalando a 150 W = 100%; a 300 W = 200%) — num **velocímetro**: um arco com as 5 zonas coloridas e um ponteiro. Cada zona ocupa a mesma fatia do arco (com os limites 55/75/90/105 marcados), então dá pra ver de relance o quanto você está perto do mínimo ou do máximo da zona atual; a zona atual fica acesa e as outras apagadas. A zona 5 vai até 150% no arco (acima disso o ponteiro para no fim). O número do %FTP, no centro do velocímetro, e o selo "Zona N" no topo do painel ganham a cor da zona correspondente:
 
 | Zona | %FTP | Cor |
 |---|---|---|
@@ -44,7 +44,7 @@ O painel ao vivo mostra o **%FTP** — watts de agora divididos pelo FTP configu
 
 Como é normal mudar o FTP durante a aula, há um botão de FTP no topo direito (ao lado de Configurar/Bikes/Painel), disponível em qualquer tela: ele abre um prompt nativo com o FTP atual e a mudança vale na hora.
 
-Sem sinal da bike, o %FTP vira traço e o selo da zona some. Com FTP 0/vazio, o %FTP fica oculto.
+Falhas curtas de leitura não apagam o painel: %FTP, rpm e watts continuam mostrando o último valor por até **20 s sem sinal**. Só depois disso o %FTP vira traço, o ponteiro e o selo da zona somem e aparecem o aviso "sem sinal" e o botão "Reconectar bike" (a retomada automática da escuta em segundo plano continua começando após 4 s sem sinal). Com FTP 0/vazio, o velocímetro fica oculto.
 
 ## Leitura da bike (Bluetooth)
 
