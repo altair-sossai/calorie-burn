@@ -1,6 +1,6 @@
 # 9. Receitas
 
-[← Build e publicação](08-build-e-deploy.md) · [Índice](README.md)
+[← Build e publicação](08-build-e-deploy.md) · [Índice](README.md) · [Parte II: JavaScript →](10-javascript-e-navegador.md)
 
 Passo a passo das mudanças mais comuns. Em todas: **teste primeiro no domínio**, depois a tela, e no fim `npm run check`.
 
