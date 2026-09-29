@@ -205,6 +205,7 @@
       <button class="navbtn active" id="navSetup" title="Configurar" aria-label="Configurar"><span class="mi">tune</span></button>
       <button class="navbtn" id="navBikes" title="Bikes" aria-label="Bikes"><span class="mi">directions_bike</span></button>
       <button class="navbtn" id="navLive" title="Painel" aria-label="Painel" disabled><span class="mi">monitoring</span></button>
+      <button class="navbtn hidden" id="navClock" title="Tempo da aula" aria-label="Acertar tempo da aula"><span class="mi">schedule</span></button>
       <button class="navbtn" id="navFtp" title="FTP" aria-label="Alterar FTP"><span class="mi">speed</span></button>
     </nav>
   </header>
@@ -291,7 +292,7 @@
     </div>
 
   </div>
-  <footer class="app-version">Versão 3.6.1</footer>
+  <footer class="app-version">Versão 3.7.0</footer>
 </div>
 
 <script>
@@ -313,7 +314,7 @@
   var detected=new Map();     // bikeId -> { data, lastSeen }
   var view="setup", simState=null;
   var confirmedIdx=0, history=[];   // marcos confirmados na aula (sequencial) + snapshots pra desfazer
-  var clock=null;             // {at,min}: relógio de referência acertado no último toque manual (at=Date.now(), min=minuto da aula); não é exibido
+  var clock=null;             // {at,min}: relógio de referência acertado no último toque manual ou pelo botão de relógio (at=Date.now(), min=minuto da aula); não é exibido
   var followIdx=-1;           // confirmedIdx pro qual a lista de marcos já foi rolada
   var kcalRestored=false, savedKcal=null;  // kcal veio do localStorage (refresh) — a próxima leitura real substitui sem o filtro de glitch
   var watched=new Map();      // device.id -> {device, ctrl}: bikes autorizadas cujos anúncios estamos escutando
@@ -337,7 +338,10 @@
     $("navSetup").classList.toggle("active",v==="setup");
     $("navBikes").classList.toggle("active",v==="bikes");
     $("navLive").classList.toggle("active",v==="live");
+    $("navClock").classList.toggle("hidden",v!=="live");
     $("title").textContent = v==="setup"?"Configurar":(v==="bikes"?"Bikes":"Ritmo de Queima");
+    // no painel o topo tem 5 botões e o nome do app não cabe no celular: fica só a chama
+    $("title").classList.toggle("hidden",v==="live");
     if(v==="bikes"){ renderBikeList(); renderDetected(); updateConnPill(); }
     if(v==="setup") renderBikeLine();
     if(v==="live"){ followIdx=-1; renderLive(); }
@@ -674,20 +678,51 @@
     // toque manual acerta o relógio de referência: agora é o fim deste marco na aula
     if(!auto) clock={at:Date.now(),min:intervals[i].end};
     saveClass();
-    renderIntervals();
+    renderIntervals(); renderForecast();
+  }
+  // desfaz o último marco confirmado, voltando as metas ao que eram antes dele
+  function popConfirmed(){
+    var snap=history.pop();
+    if(snap) intervals=snap;
+    confirmedIdx--;
   }
   // desfazer para o relógio: sem ele não há barra de tempo nem avanço automático até o próximo toque manual
   function unconfirmInterval(i){
     if(i!==confirmedIdx-1) return;
-    var snap=history.pop();
-    if(snap) intervals=snap;
-    confirmedIdx=i;
+    popConfirmed();
     clock=null;
     saveClass();
-    renderIntervals();
+    renderIntervals(); renderForecast();
   }
   // minuto da aula pelo relógio de referência (null enquanto não houve toque manual)
   function classMin(){ return clock ? clock.min+(Date.now()-clock.at)/60000 : null; }
+  // tempo da aula digitado -> minuto da aula (null se inválido). Aceita "02:45", "2:45", "02 45", "2 45",
+  // "0245" (MMSS) e "245" (MSS): só dígitos com 3+ casas = os 2 últimos são os segundos; com 1–2 casas = só minutos ("3")
+  function parseClassTime(v){
+    var s=String(v).trim(), min, sec;
+    var m=s.match(/^(\d{1,3})\s*[:.,h ]\s*(\d{1,2})$/);
+    if(m){ min=+m[1]; sec=+m[2]; }
+    else if(/^\d{1,5}$/.test(s)){
+      if(s.length>=3){ min=+s.slice(0,-2); sec=+s.slice(-2); }
+      else { min=+s; sec=0; }
+    }
+    else return null;
+    if(sec>=60) return null;
+    return min+sec/60;
+  }
+  function fmtClassTime(min){
+    var s=Math.max(0,Math.floor(min*60+1e-6));   // folga pro ponto flutuante: 2+3/60 vira 122,99999 s
+    return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+  }
+  // acerta o relógio pelo tempo da aula digitado: marcos confirmados que terminam depois desse tempo são desmarcados
+  // (do último pro primeiro) e os que já passaram são concluídos sozinhos, como no avanço normal
+  function syncClock(min){
+    while(confirmedIdx>0 && intervals[confirmedIdx-1].end>min) popConfirmed();
+    clock={at:Date.now(),min:min};
+    autoAdvance();
+    saveClass();
+    renderLive();
+  }
   // quando o relógio passa do fim do marco atual, conclui sozinho e recalcula os próximos
   function autoAdvance(){
     var t=classMin();
@@ -804,7 +839,7 @@
   function renderForecast(){
     var f=forecastKcal(), diffEl=$("fcDiff");
     var ended=classMin()!=null && classMin()>=S.total;
-    $("fcLabel").textContent = ended ? "total da aula" : (f==null ? "previsão: toque num marco" : "previsão no fim da aula");
+    $("fcLabel").textContent = ended ? "total da aula" : (f==null ? "previsão: acerte o relógio" : "previsão no fim da aula");
     diffEl.classList.toggle("hidden",f==null);
     if(f==null){ $("fcKcal").textContent="–"; return; }
     var fr=Math.round(f), diff=fr-Math.round(S.goal);
@@ -892,6 +927,15 @@
     if(!isFinite(n) || n<0) return;
     S.ftp=n; $("ftp").value=n; saveCfg();
     if(view==="live") renderLive();
+  });
+  // relógio: digita o tempo da aula agora (MM:SS) e a barra de tempo já aparece no marco atual, sem esperar o primeiro toque
+  $("navClock").addEventListener("click",function(){
+    var t=classMin();
+    var v=prompt("Tempo da aula agora (MM:SS)\n\nExemplos pra 2 min 45 s:\n02:45  ·  2:45  ·  2 45  ·  0245  ·  245", t!=null ? fmtClassTime(t) : "");
+    if(v==null || String(v).trim()==="") return;
+    var min=parseClassTime(v);
+    if(min==null){ alert("Tempo inválido. Use MM:SS, MMSS ou MSS — ex. 02:45, 0245 ou 245."); return; }
+    syncClock(min);
   });
 
   // voltou pra tela (desbloqueou o celular / trocou de app): retoma a escuta na hora
