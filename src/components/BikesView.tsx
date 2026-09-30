@@ -3,16 +3,29 @@ import { SIM_ID } from '../ble/simulator';
 import { bikeName, isSim, type Notice as NoticeData } from '../state/store';
 import s from './BikesView.module.css';
 import { Icon } from './Icon';
-import { StartButton } from './SetupView';
 
+/** Aba Bike durante a aula: trocar de bike ou reconectar sem encerrar a aula. */
 export function BikesView() {
+  const { store } = useRuntime();
+  return (
+    <div class="col" id="bikes">
+      <BikePicker />
+      <button class="btn ghost" id="backLive" onClick={() => store.nav('live')}>
+        <Icon name="monitoring" /> Voltar ao painel
+      </button>
+    </div>
+  );
+}
+
+/** Busca pelo Bluetooth, bikes detectadas, cadastro e escolha da bike (na tela Configurar e na aba Bike). */
+export function BikePicker() {
   const { store, ble, scan } = useRuntime();
   const conn = store.connStatus();
   const detected = store.detectedNew();
   const mine = [...store.bikes].sort((a, b) => a - b);
 
   return (
-    <div class="col" id="bikes">
+    <>
       <div class={s.conn}>
         <div class={s.hd}>
           <span class={s.title}><Icon name="bluetooth" class="sm" /> Buscar</span>
@@ -55,9 +68,7 @@ export function BikesView() {
         {mine.map((id) => <BikeRow key={id} id={id} deletable />)}
         <BikeRow id={SIM_ID} />
       </div>
-
-      <StartButton id="startBtnBikes" />
-    </div>
+    </>
   );
 }
 

@@ -39,6 +39,7 @@
 | **Locator / auto-wait** | busca de elemento no Playwright que espera ele ficar pronto | [18](18-testes-conceitos-e-ferramentas.md) |
 | **Manufacturer data** | parte livre de um anúncio BLE, definida pelo fabricante | [14](14-web-bluetooth-e-ble.md) |
 | **Máscara de bits** | `valor & 0x7fff`: isolar bits de um número | [15](15-dados-binarios.md) |
+| **Modal** | caixa por cima da tela que prende a atenção até fechar; aqui, o relógio da aula (`ClockSync`), onde o play começa a aula | [6](06-interface.md) |
 | **Narrowing** | o TypeScript "estreitar" um tipo depois de um `if` | [11](11-typescript.md) |
 | **Props** | parâmetros de um componente | [12](12-preact-e-jsx.md) |
 | **Runtime** | aqui: o módulo que liga store, Bluetooth, relógio e eventos | [2](02-arquitetura.md) |

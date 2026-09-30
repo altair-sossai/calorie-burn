@@ -1,0 +1,31 @@
+.hint{margin:0;font-size:13px;line-height:1.4;color:var(--muted)}
+
+/* relógio estilo timer: setas, tempo e setas nas mesmas 3 colunas (minutos | dois-pontos | segundos) */
+.clock{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:4px 8px}
+[data-running="true"] .clock{border-color:var(--good)}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr);align-items:center;justify-items:center;width:100%}
+
+/* o tempo que falta, grande; tocar troca pelo campo de digitar */
+.time{
+  background:none;border:0;padding:0;color:var(--text);cursor:pointer;
+  font-family:"Oswald",sans-serif;font-weight:700;font-size:64px;line-height:1.05;font-variant-numeric:tabular-nums;
+}
+[data-running="true"] .time{color:var(--good)}
+.colon{margin-top:-.12em}
+
+.arrow{width:100%;max-width:120px;height:44px}
+.arrow :global(.mi){font-size:38px}
+
+.state{text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-top:-4px}
+.tip{text-transform:none;letter-spacing:normal;font-weight:500}
+
+/* digitar o tempo: o campo ocupa o lugar do relógio, no mesmo tamanho de número */
+.typeForm{display:flex;flex-direction:column;gap:10px}
+.input{
+  width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;color:var(--text);text-align:center;
+  font-family:"Oswald",sans-serif;font-weight:700;font-size:56px;line-height:1.1;padding:8px 0;font-variant-numeric:tabular-nums;
+}
+.input:focus{outline:none;border-color:var(--red)}
+.input.invalid{border-color:var(--bad)}
+.help{text-align:center;font-size:12px;line-height:1.4;color:var(--muted);margin-top:-4px}
+.help.err{color:var(--bad);font-weight:600}

@@ -30,7 +30,7 @@ Coisas do mundo real (tempo, Bluetooth, disco) são lentas ou imprevisíveis. No
 | Tipo | O que é | No projeto |
 |---|---|---|
 | **fake** | implementação simples que funciona de verdade | `memoryStorage()` (um `Map` no lugar do `localStorage`), `fakeClock()`, o Bluetooth falso do e2e |
-| **stub** | responde valores prontos | `window.prompt` que devolve `app.answerPrompt(...)` |
+| **stub** | responde valores prontos | `bt.getDevices()` do Bluetooth falso, que devolve o device já autorizado |
 | **mock/spy** | registra como foi chamado, pra verificar | `vi.fn()` em `bluetooth.test.ts`: `expect(requestDevice).toHaveBeenLastCalledWith(…)` |
 
 Isso só é possível por causa da **injeção de dependência**: `AppStore` e `BluetoothController` recebem `now`, `storage` e `bluetooth` no construtor em vez de usar os globais direto.
@@ -91,7 +91,7 @@ Uma fixture prepara algo pro teste e limpa depois. Cada teste recebe um **contex
 
 ### `addInitScript`: mexer no navegador antes do app
 
-Roda um código **antes de qualquer script da página**, em cada carregamento (inclusive após `reload`). É o que permite trocar `Date.now`, `prompt` e `navigator.bluetooth` antes do app ler.
+Roda um código **antes de qualquer script da página**, em cada carregamento (inclusive após `reload`). É o que permite trocar `Date.now` e `navigator.bluetooth` antes do app ler.
 
 ### `webServer`
 

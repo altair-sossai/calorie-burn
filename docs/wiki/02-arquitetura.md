@@ -25,7 +25,7 @@ flowchart TB
     D[intervals · session · classTime<br/>forecast · zones · inputs]
   end
   subgraph components
-    UI[App → Header, SetupView,<br/>BikesView, LiveView…]
+    UI[App → Header, SetupView,<br/>BikesView, LiveView,<br/>ClockSync, FtpDialog…]
   end
   BT --> BC
   RT --> BC
@@ -71,7 +71,7 @@ sequenceDiagram
   UI->>ST: showBike(), classMin(), session…
 ```
 
-Repare: no painel, `ingest` **não** redesenha a tela; quem redesenha é o `tick` de 1 s. Assim, com 20 bikes transmitindo na academia, a tela não redesenha 20 vezes por segundo. Na aba Bikes o `ingest` chama `emit()` direto, pra lista de detectadas acompanhar na hora.
+Repare: no painel, `ingest` **não** redesenha a tela; quem redesenha é o `tick` de 1 s. Assim, com 20 bikes transmitindo na academia, a tela não redesenha 20 vezes por segundo. Fora do painel (tela Configurar e aba Bike, onde aparece a lista de detectadas) o `ingest` chama `emit()` direto, pra lista acompanhar na hora.
 
 ## O runtime (`src/app/runtime.ts`)
 
@@ -82,7 +82,7 @@ Repare: no painel, `ingest` **não** redesenha a tela; quem redesenha é o `tick
 3. `store.load()` — restaura configuração, bikes e aula.
 4. `ble.resume(true)` — retoma bikes já autorizadas.
 5. `setInterval` de 1 s: `store.tick()` e, se `needsReconnect()`, `ble.resume(false)`.
-6. Eventos: voltar pra tela → retoma Bluetooth e wake lock; esconder → salva aula; `pagehide` → salva e libera o Bluetooth; clique → tenta wake lock.
+6. Eventos: voltar pra tela → retoma Bluetooth e wake lock; esconder → salva aula; `pagehide` → salva e libera o Bluetooth; clique → tenta wake lock. Um `store.subscribe` também pede o wake lock quando o modal do relógio abre (esperando o play) e quando a aula começa.
 7. `scan()` — a ação do botão "Buscar bike"/"Reconectar bike", que traduz o resultado do Bluetooth em aviso na tela.
 
 `main.tsx` só faz `render(<App runtime={createRuntime()} />)`.

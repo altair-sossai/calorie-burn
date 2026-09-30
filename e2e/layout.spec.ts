@@ -16,7 +16,13 @@ for (const width of [320, 360, 375, 390, 420]) {
     const phone = (await page.getByTestId('phone').boundingBox())!;
     expect([phone.x, phone.y, phone.width, phone.height]).toEqual([0, 0, width, 800]);
 
-    await app.startWithSim();
+    // o relógio (modal) cabe no cartão
+    await page.locator('#bikeList').getByTestId('bike-select').filter({ hasText: 'Bike simulada' }).click();
+    await app.$('startBtn').click();
+    expect(await inside('#clockModal', '[data-testid="phone"]')).toBe(true);
+    expect(await noHorizontalScroll()).toBe(true);
+    await app.$('clockPlay').click();
+
     await app.setClock('12:34');
     await expect(app.$('zone')).toBeVisible();
     expect(await noHorizontalScroll()).toBe(true);
@@ -27,5 +33,11 @@ for (const width of [320, 360, 375, 390, 420]) {
     // velocímetro não invade o giro
     const [gauge, rpm] = await Promise.all([page.getByTestId('gauge').boundingBox(), page.getByTestId('rpm-box').boundingBox()]);
     expect(gauge!.x + gauge!.width).toBeLessThanOrEqual(rpm!.x + 1);
+
+    // o modal de FTP cabe no cartão, com − e + dos lados do número
+    await app.$('navFtp').click();
+    expect(await inside('#ftpModal', '[data-testid="phone"]')).toBe(true);
+    expect(await inside('#ftpInput', '#ftpModal')).toBe(true);
+    expect(await noHorizontalScroll()).toBe(true);
   });
 }

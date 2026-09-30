@@ -12,7 +12,7 @@ Cada arquivo é um **módulo**: tem escopo próprio e escolhe o que exporta.
 // src/domain/classTime.ts
 export function parseClassTime(value: string): number | null { … }
 
-// src/components/Header.tsx
+// src/components/ClockSync.tsx
 import { fmtClassTime, parseClassTime } from '../domain/classTime';
 ```
 

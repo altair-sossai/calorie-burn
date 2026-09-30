@@ -80,3 +80,7 @@ export function loadClass(kv: KV): StoredClass | null {
 export function saveClass(kv: KV, c: StoredClass): void {
   write(kv, KEYS.cls, c);
 }
+/** Aula encerrada: some do salvo (um refresh não traz ela de volta). */
+export function clearClass(kv: KV): void {
+  write(kv, KEYS.cls, null);
+}

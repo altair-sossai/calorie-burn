@@ -6,13 +6,13 @@ Guia de estudo do código. Cada página explica uma parte do projeto com exemplo
 
 - **Parte I — O projeto:** o que o app faz e como o código está montado.
 - **Parte II — As tecnologias:** cada ferramenta explicada do zero, sempre com exemplos deste código.
-- **Parte III — Como as coisas acontecem:** cenas seguidas linha a linha (abrir o app, um segundo, um anúncio, um toque, um refresh) e o glossário.
+- **Parte III — Como as coisas acontecem:** cenas seguidas linha a linha (abrir o app, um segundo, um anúncio, um toque, iniciar a aula pelo relógio, um refresh) e o glossário.
 
 ### Parte I — O projeto
 
 | # | Página | O que você aprende |
 |---|---|---|
-| 1 | [Visão geral](01-visao-geral.md) | O que o app faz, as 3 telas e o vocabulário (marco, relógio, risco, zona…) |
+| 1 | [Visão geral](01-visao-geral.md) | O que o app faz, as telas, o início pelo relógio e o vocabulário (marco, relógio, risco, zona…) |
 | 2 | [Arquitetura](02-arquitetura.md) | As camadas, quem depende de quem e como um dado da bike vira pixel |
 | 3 | [Domínio: os cálculos](03-dominio.md) | Marcos, recálculo, sessão da aula, relógio, previsão e zonas — com contas |
 | 4 | [Bluetooth e a Keiser](04-bluetooth.md) | Escuta, reconexão, sinal de 4 s/20 s e bike simulada |
@@ -32,7 +32,7 @@ Guia de estudo do código. Cada página explica uma parte do projeto com exemplo
 | 13 | [npm, Node e Vite](13-npm-e-vite.md) | `package.json`, lock, semver, dev server e HMR, build (bundle, tree-shaking, hash) |
 | 14 | [Bluetooth Low Energy e Web Bluetooth](14-web-bluetooth-e-ble.md) | anúncios × GATT, manufacturer data, a API, segurança, suporte e o Bluefy |
 | 15 | [Dados binários](15-dados-binarios.md) | bytes, hexadecimal, endianness, ArrayBuffer/DataView, máscaras de bits |
-| 16 | [APIs do navegador](16-apis-do-navegador.md) | localStorage, ciclo de vida da página, bfcache, Wake Lock, prompt, AbortController |
+| 16 | [APIs do navegador](16-apis-do-navegador.md) | localStorage, ciclo de vida da página, bfcache, Wake Lock, por que não usar prompt/confirm, AbortController |
 | 17 | [SVG e CSS](17-svg-e-css.md) | viewBox, trigonometria do arco, `path`, rotação, variáveis CSS, flex/grid, unidades do celular |
 | 18 | [Testes: conceitos e ferramentas](18-testes-conceitos-e-ferramentas.md) | pirâmide, dublês, injeção de dependência, Vitest, Playwright (locators, fixtures, traces) |
 | 19 | [Git, GitHub Actions e Pages](19-git-actions-e-pages.md) | branch, merge, Conventional Commits, anatomia do workflow, Pages |

@@ -5,6 +5,5 @@
 .nav{display:flex;gap:6px;flex:0 0 auto}
 .navbtn{background:var(--surface);color:var(--muted);border:1px solid var(--line);width:38px;height:36px;border-radius:10px;font-size:19px;cursor:pointer;display:grid;place-items:center}
 .navbtn.active{color:#fff;background:linear-gradient(135deg,var(--red-hi),var(--red));border-color:transparent}
-.navbtn[disabled]{opacity:.4;cursor:default}
 .navbtn:active{transform:scale(.94)}
 .navbtn:focus-visible{outline:2px solid var(--red);outline-offset:2px}

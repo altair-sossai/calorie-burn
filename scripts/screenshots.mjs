@@ -14,7 +14,7 @@ const browser = await chromium.launch(process.env.CI ? {} : { channel: 'chrome' 
 // aula de 45 min, meta 700, blocos de 8; marcos 8 e 16 confirmados (no 16 a kcal real era 272) e relógio em 19:30
 function seed(view) {
   localStorage.clear();
-  localStorage.setItem('ritmoQueimaCfg', JSON.stringify({ goal: 700, total: 45, interval: 8, startKcal: 0, ftp: 215, chosen: -1 }));
+  localStorage.setItem('ritmoQueimaCfg', JSON.stringify({ goal: 700, total: 45, interval: 8, ftp: 215, chosen: -1 }));
   localStorage.setItem('ritmoQueimaBikes', JSON.stringify([7, 12]));
   if (view !== 'live') return;
   const goal = 700, total = 45, ends = [8, 16, 24, 32, 40, 45];
@@ -27,12 +27,13 @@ function seed(view) {
   localStorage.setItem('ritmoQueimaAula', JSON.stringify({ startedAt: now - 19.5 * 60000, intervals: iv, confirmedIdx: 2, history: [], clock: { at: now - 3.5 * 60000, min: 16 }, kcal: 330 }));
 }
 
-for (const view of ['live', 'setup', 'bikes']) {
+// clock = tela Configurar depois de tocar em Iniciar aula (relógio parado esperando o play)
+for (const view of ['live', 'setup', 'clock']) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 });
   await page.addInitScript(seed, view);
   await page.goto(base);
   await page.addStyleTag({ content: '*{transition:none!important}' });
-  if (view === 'bikes') await page.click('#navBikes');
+  if (view === 'clock') await page.click('#startBtn');
   await page.waitForTimeout(2500); // leituras da bike simulada + fontes
   if (view === 'live') await page.evaluate(() => { const b = document.getElementById('intervals'); b.scrollTop = b.children[1].offsetTop; });
   await page.screenshot({ path: `${dir}/${view}.png` });

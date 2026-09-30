@@ -77,7 +77,8 @@ rádio → sistema operacional → navegador → evento 'advertisementreceived'
    - pacote não-realtime → ignora;
    - grava em `detected` (com filtro de glitch por bike);
    - **é a bike escolhida?** calcula a kcal (primeira leitura após refresh substitui; senão `guardKcal`) e troca `live` inteiro, com `lastSeen = now`;
-   - **aba Bikes aberta?** `emit()` na hora (a lista de detectadas mostra o rpm ao vivo). No painel, espera o próximo tick.
+   - **é a bike escolhida e o aviso era `'noSignal'`?** some o aviso do "Iniciar aula";
+   - **fora do painel** (Configurar ou aba Bike)? `emit()` na hora (a lista de detectadas mostra o rpm ao vivo). No painel, espera o próximo tick.
 
 ---
 
@@ -100,18 +101,46 @@ Tocar de novo no "16" (agora o último concluído) → `unconfirm`: volta as met
 
 ---
 
-## Cena 5 — Digitar o tempo da aula
+## Cena 5 — Iniciar a aula e acertar o relógio
 
-Botão de relógio → `Header.askClock`:
+```mermaid
+sequenceDiagram
+  autonumber
+  participant U as Você
+  participant V as SetupView / ClockSync
+  participant S as AppStore
+  participant D as session.ts
+  U->>V: toca "Iniciar aula"
+  V->>S: requestStart()
+  Note over S: campos → cfg, bikeReady()?<br/>não → startBlock ('noBike' / 'noSignal')
+  S->>V: clockModal = {draft: 45} → emit() → abre o modal parado
+  U->>V: setas (min/seg) ou toca no tempo e digita
+  V->>S: shiftRemaining / setRemaining (só mexe no draft)
+  U->>V: toca "Iniciar" (play)
+  V->>S: beginClass()
+  S->>D: newSession(plan, now) com startKcal = kcal da bike
+  S->>D: syncClock(total − draft)
+  S->>V: saveClass(), view = 'live', emit()
+```
 
-1. `store.classMin()` → se houver relógio, `fmtClassTime` pré-preenche o prompt (`"12:34"`).
-2. `window.prompt(CLOCK_PROMPT, …)` bloqueia até você responder. Cancelou/vazio → nada.
-3. `parseClassTime("1230")` → só dígitos, 4 casas → 12 min + 30 s → `12.5`. Inválido → `alert` e fim.
-4. `store.syncClock(12.5)` → `session.syncClock`:
+**Iniciar (Configurar → modal → painel):**
+
+1. `#startBtn` → `store.requestStart()`: passa os 4 campos pro `cfg` (`parseField`) e salva. Sem bike escolhida → `startBlock = 'noBike'`; bike real sem leitura há mais de 4 s (`!bikeReady()`) → `'noSignal'`. Nos dois casos o `SetupView` mostra o `#startBlock` e o modal **não** abre. O aviso `'noSignal'` some sozinho quando a bike manda leitura (`ingest`) ou você escolhe outra (`selectBike`).
+2. Bike respondendo → `clockModal = { draft: 45 }`. Ainda **não existe** sessão; o `ClockSync` aparece parado em `45:00` e o runtime já pede o wake lock (a chave `startedAt|clockModal` mudou).
+3. Os ajustes (`shiftRemaining(−1/60)`…) e o tempo digitado (`setRemaining`) só mudam o `draft`, preso entre 0 e 45 e arredondado em segundos inteiros. **Cancelar** → `closeClock()`: modal fecha, continua em Configurar, nada salvo.
+4. **Iniciar** → `store.beginClass()`: `cfg.startKcal = round(live.kcal)` (a kcal que a bike mostra agora), `session.newSession(plan, now)`, `view = 'live'`, fecha o modal e `syncClock(45 − draft)` — com o draft intacto, minuto 0. O relógio já anda: tempo `00:00` ao lado da zona, risco no começo do primeiro marco e previsão na fase `warmup` ("previsão a partir dos 5 min").
+
+**Acertar com a aula andando:** botão de relógio do topo → `store.openClock()` → o modal abre com o relógio **andando** (`remaining()` = 45 − `classMin()`).
+
+1. Toca no tempo → o relógio vira o campo `#clockInput`, já focado com `32:40` (o que falta agora) selecionado. **Voltar**/Esc → volta pro relógio, nada muda.
+2. Digita `3230` e OK/Enter → `parseClassTime("3230")` → só dígitos, 4 casas → 32 min + 30 s → `32.5` que **faltam**. Inválido → aviso vermelho embaixo do campo e continua digitando.
+3. `store.setRemaining(32.5)` → relógio andando → `syncClock(45 − 32.5 = 12.5)` → `session.syncClock`:
    - desfaz marcos confirmados que terminam depois de 12,5 (ex.: o 16);
    - `clock = { at: now, min: 12.5 }`;
    - `autoAdvance`: conclui os que terminam até 12,5 (o 8, se ainda não estava).
-5. Salva, emite, redesenha.
+4. Salva, emite, redesenha — o modal já mostra `32:30` correndo. As setas (±1 min, ±1 s; segurando, repetem) fazem o mesmo caminho. **OK** fecha.
+
+Se o relógio estiver **parado** (você desfez um marco), o `openClock` põe o `draft` no fim do último marco concluído e o botão vira **Play** (`beginClass`, que agora só faz o `syncClock`).
 
 ---
 
@@ -141,3 +170,4 @@ Botão de relógio → `Header.askClock`:
 1. Coloque `console.log` em `store.tick`, `store.ingest` e `App` (no corpo do componente). Com a Bike simulada no painel, qual a ordem das mensagens em 1 s?
 2. Desenhe o diagrama de sequência da **Cena 4** no estilo da Cena 1.
 3. Na Cena 6, o que aconteceria sem o `ble.release()` no `pagehide`?
+4. Na Cena 5, dê refresh com o modal do relógio aberto **antes** do play. O que volta: a tela Configurar ou o painel? Por quê? (Dica: quem salva a aula é o `beginClass`.)

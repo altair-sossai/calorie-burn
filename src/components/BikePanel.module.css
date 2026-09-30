@@ -11,9 +11,14 @@
 .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
 .title{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
 .status{display:flex;align-items:center;gap:8px}
-.ctime{font-family:"Oswald",sans-serif;font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--text);display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
-.ctime :global(.mi){color:var(--muted)}
-.zone{font-family:"Oswald",sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:3px 10px;border-radius:999px;background:var(--zc);color:#111}
+/* tempo da aula e zona: o mesmo selo (fonte, tamanho, altura); só o fundo muda — a zona pega a cor dela */
+.ctime,.zone{
+  font-family:"Oswald",sans-serif;font-size:15px;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:.05em;
+  padding:5px 11px;border-radius:999px;border:1px solid transparent;display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums;
+}
+.ctime{background:var(--surface-2);border-color:var(--line);color:var(--text)}
+.ctime :global(.mi){font-size:15px;color:var(--muted)}
+.zone{background:var(--zc);color:#111}
 .nosig{color:var(--red-hi);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
 
 /* em cima o que o instrutor pede (zona e giro); o velocímetro fica com a coluna maior */

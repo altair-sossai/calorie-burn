@@ -71,14 +71,16 @@ interface Session { startedAt; intervals; confirmedIdx; history; clock }
 
 - `confirmedIdx`: quantos marcos já foram confirmados, **em sequência** (0..6). O marco atual é `intervals[confirmedIdx]`.
 - `history`: pilha com as metas de antes de cada confirmação (pra desfazer).
-- `clock`: relógio de referência ou `null`.
+- `clock`: relógio de referência ou `null` (parado).
+
+A sessão nasce no **play** do modal do relógio (`store.beginClass()`): `newSession` cria com `clock = null` e, logo em seguida, o store chama `syncClock(total − tempo que falta no modal)` — então a aula já começa com o relógio andando (minuto 0, ou o minuto em que você entrou). O `startKcal` do plano é a kcal que a bike mostrava no play.
 
 Todas as funções devolvem uma **nova** sessão (ou a mesma, se nada mudou — o store usa isso pra saber se precisa salvar).
 
 ```mermaid
 stateDiagram-v2
   direction LR
-  [*] --> k0: newSession
+  [*] --> k0: newSession + syncClock<br/>(play no modal do relógio)
   k0: confirmedIdx = k
   k0 --> k1: confirm(k) / toque no marco atual<br/>(acerta relógio no fim do marco)
   k0 --> k1: autoAdvance / relógio passou do fim<br/>(não mexe no relógio)
@@ -92,7 +94,7 @@ stateDiagram-v2
 | `popConfirmed(s)` | interno | volta um marco com as metas do histórico, **mantém** o relógio |
 | `unconfirm(s, i)` | toque no último confirmado | `popConfirmed` + `clock = null` |
 | `autoAdvance(s, kcal, …)` | todo tick de 1 s e ao carregar | enquanto `classMin ≥ fim do marco atual`, confirma com `auto = true` |
-| `syncClock(s, min, kcal, …)` | botão de relógio | ver abaixo |
+| `syncClock(s, min, kcal, …)` | play e ajustes no modal do relógio | ver abaixo |
 
 ### `syncClock`: o tempo digitado manda
 
@@ -100,7 +102,9 @@ stateDiagram-v2
 2. Acerta `clock = {at: now, min}`.
 3. `autoAdvance`: conclui os que já terminaram.
 
-Com 8 e 16 concluídos, digitar `10:00`: o 16 termina em 16 > 10 → desfeito; o 8 termina em 8 ≤ 10 → fica. Resultado: 8 concluído, 16 atual, risco a 25% do bloco 8→16. `16:00` exato mantém o 16 concluído (`autoAdvance` usa `≥`).
+O modal mostra e recebe o tempo que **falta** (contagem regressiva, como o relógio da sala); o store converte pra minuto da aula antes de chamar `syncClock`: `min = total − falta` (`setRemaining`). Numa aula de 45 min, faltando `35:00` → minuto 10.
+
+Com 8 e 16 concluídos, acertar o minuto `10:00` (faltando `35:00`): o 16 termina em 16 > 10 → desfeito; o 8 termina em 8 ≤ 10 → fica. Resultado: 8 concluído, 16 atual, risco a 25% do bloco 8→16. `16:00` exato mantém o 16 concluído (`autoAdvance` usa `≥`).
 
 ## Relógio e tempo digitado (`classTime.ts`)
 
@@ -125,12 +129,12 @@ Usa a **média da aula inteira** (não dos últimos minutos) porque a aula alter
 
 | Fase | Quando | Rodapé |
 |---|---|---|
-| `noClock` | relógio não acertado | "previsão: acerte o relógio", sem número |
+| `noClock` | relógio parado (desfez um marco; o play já deixa o relógio andando) | "previsão: acerte o relógio", sem número |
 | `warmup` | menos de **5 min** de aula (`FORECAST_MIN_MINUTES`) | "previsão a partir dos 5 min", sem número — no começo o ritmo médio oscila demais (aquecimento, primeiro sprint) |
 | `active` | de 5 min até o fim | a previsão e a diferença pra meta |
 | `ended` | depois do fim | "total da aula" = a kcal feita |
 
-**Atualização a cada 15 s** (`store.forecast()`, `FORECAST_REFRESH_MS`): o número mudando todo segundo distrai. O store guarda a última previsão e só recalcula depois de 15 s — **ou na hora** se mudar algo que muda o sentido dela: a fase, o relógio (acertado/desfeito) ou o plano (meta, duração, kcal inicial). Na fase `ended` acompanha a kcal ao vivo. A regra dos 5 min é do domínio (pura, testada em `forecast.test.ts`); o ritmo de atualização é do store (depende do tempo, testado em `store.test.ts`).
+**Atualização a cada 15 s** (`store.forecast()`, `FORECAST_REFRESH_MS`): o número mudando todo segundo distrai. O store guarda a última previsão e só recalcula depois de 15 s — **ou na hora** se mudar algo que muda o sentido dela: a fase, o relógio (acertado/desfeito) ou o plano (meta, duração, kcal inicial — esta vem da bike no play). Na fase `ended` acompanha a kcal ao vivo. A regra dos 5 min é do domínio (pura, testada em `forecast.test.ts`); o ritmo de atualização é do store (depende do tempo, testado em `store.test.ts`).
 
 ## Zonas e velocímetro (`zones.ts`)
 

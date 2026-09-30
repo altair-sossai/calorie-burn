@@ -1,0 +1,12 @@
+/* janela por cima do cartão do app (o .phone é position:relative) */
+.backdrop{position:absolute;inset:0;z-index:10;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+.dialog{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 14px 14px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:stretch;gap:10px}
+.title{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:14px;margin:0;display:flex;align-items:center;gap:7px}
+
+/* botão de ajuste que repete segurando: sem seleção, menu de contexto nem zoom no toque */
+.hold{
+  border:0;border-radius:11px;background:none;color:var(--muted);cursor:pointer;
+  display:grid;place-items:center;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+}
+.hold:active{background:var(--line);color:var(--text)}
+.hold:focus-visible{outline:2px solid var(--red);outline-offset:-2px}

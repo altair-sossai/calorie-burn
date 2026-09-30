@@ -42,16 +42,16 @@ const lock = await navigator.wakeLock.request('screen');
 lock.addEventListener('release', () => { /* o sistema soltou (ex.: trocou de aba) */ });
 ```
 
-- Só funciona com a página **visível**, e alguns navegadores exigem um toque antes — por isso o runtime tenta ao iniciar a aula, ao voltar pra tela e a cada clique.
+- Só funciona com a página **visível**, e alguns navegadores exigem um toque antes — por isso o runtime tenta ao tocar em "Iniciar aula" (a tela precisa ficar acesa enquanto o relógio espera o play), no play, ao voltar pra tela e a cada clique. A condição é `store.classActive() || store.clockModal`.
 - O sistema solta o lock quando a aba some; ao voltar, o app pede de novo.
 
 ## `setInterval` e `Date.now`
 
 Ver [página 10](10-javascript-e-navegador.md#tempo-datenow-e-setinterval). O runtime usa **um** intervalo de 1 s pra tudo.
 
-## `prompt` e `alert`
+## Por que não `prompt`, `alert` e `confirm`
 
-Caixas nativas, **bloqueantes** (o JavaScript para até a pessoa responder). Normalmente evitadas, aqui são uma escolha consciente: no meio da aula, o teclado numérico nativo é mais rápido que qualquer modal. `prompt` devolve o texto ou `null` (cancelou).
+São caixas nativas, **bloqueantes** (o JavaScript para até a pessoa responder), sem estilo nenhum e com cara diferente em cada navegador — no Bluefy do iPhone, por exemplo, mostram o endereço da página no título. Por isso o app não usa nenhuma: FTP, digitar o tempo do relógio e a confirmação do **Editar aula** são modais próprios (`Modal.tsx`), que seguem o visual do app, mostram o erro ali mesmo (em vez de um `alert`) e fecham com Esc ou tocando fora. Os testes de fluxo falham se aparecer qualquer caixa nativa (`page.on('dialog')` no `fixtures.ts`).
 
 ## `element.scrollTo`
 

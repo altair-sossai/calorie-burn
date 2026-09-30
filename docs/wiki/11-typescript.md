@@ -102,7 +102,7 @@ private watched = new Map<string, { device: BleDevice; ctrl: AbortController | n
 ## Exercícios
 
 1. Em `BikePanel.tsx`, apague o `if`/`&&` que protege `t != null` antes de `fmtClassTime(t)` e rode `npm run typecheck`. Leia a mensagem.
-2. Adicione `'history'` em `View` e veja onde o TypeScript reclama (dica: `TITLES` em `Header.tsx` é um `Record<View, string>`).
+2. Adicione `'peso'` em `Field` (`state/store.ts`) e veja onde o TypeScript reclama (dica: `inputsFrom` devolve um `Record<Field, string>` e o `switch` de `parseField` precisa cobrir todo campo).
 3. Por que `loadClass` lê o JSON como `unknown` em vez de `as StoredClass` direto?
 
 **Pra aprofundar:** [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html) · [Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html) · [Utility types](https://www.typescriptlang.org/docs/handbook/utility-types.html)

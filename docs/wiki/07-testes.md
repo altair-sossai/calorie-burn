@@ -8,7 +8,7 @@ Duas camadas:
 |---|---|---|
 | Onde | `src/**/*.test.ts`, ao lado do código | `e2e/*.spec.ts` |
 | Roda em | Node, sem navegador | Chrome de verdade, no **build de produção** |
-| Testa | cálculos, Bluetooth, armazenamento, fluxo no `store` | o app inteiro: cliques, prompts, tela, layout |
+| Testa | cálculos, Bluetooth, armazenamento, fluxo no `store` | o app inteiro: cliques, modais, tela, layout |
 | Velocidade | ~0,5 s | ~20 s |
 | Comando | `npm test` / `npm run test:watch` | `npm run test:e2e` |
 
@@ -31,7 +31,8 @@ const store = new AppStore({ storage: kv, now: clock.now });
 store.load();
 store.selectBike(7);
 store.ingest(reading({ kcal: 30 }));
-store.startClass();
+store.requestStart();        // abre o relógio parado em 45:00
+store.beginClass();          // play: cria a aula no minuto 0
 store.syncClock(7.99);
 clock.advance(1000);         // o tempo anda sem esperar
 store.tick();
@@ -53,7 +54,7 @@ Por isso o store recebe `now` e `storage`: o teste controla o tempo e o armazena
 | `ble/keiser.test.ts` | pacote e todas as variações de `manufacturerData` |
 | `ble/bluetooth.test.ts` | seletor (Bluefy), varredura (Chrome), cancelar, erro, reconexão, intervalo mínimo |
 | `state/storage.test.ts` | ida e volta, lixo, **formato antigo** |
-| `state/store.test.ts` | o fluxo inteiro: config, bikes, sinal 4 s/20 s, aula, refresh, aula vencida, simulada |
+| `state/store.test.ts` | o fluxo inteiro: config, bikes, sinal 4 s/20 s, iniciar só com a bike respondendo, modal do relógio (parado/andando, cancelar, play), editar aula, refresh, aula vencida, simulada |
 
 ## Playwright
 
@@ -62,7 +63,7 @@ Por isso o store recebe `now` e `storage`: o teste controla o tempo e o armazena
 `e2e/fixtures.ts` injeta um script **antes do app carregar** (`page.addInitScript`) que:
 
 - troca `Date.now` por `Date.now + skew` — o teste avança o tempo com `app.advance(ms)` (o skew fica no `sessionStorage`, então sobrevive a um refresh);
-- troca `prompt`/`alert` por versões automáticas — o teste define a resposta com `app.answerPrompt('0245')` e lê o que foi perguntado com `app.prompts()`;
+- escuta `page.on('dialog')`: o app não usa `prompt`/`alert`/`confirm`, então qualquer caixa nativa faz o teste falhar no fim (junto com os erros de JavaScript);
 - cria um `navigator.bluetooth` falso com um device que manda **pacotes Keiser reais** — `app.advert({ id: 7, watts: 150, kcal: 30 })`.
 
 O modo do Bluetooth é uma opção do teste: `test.use({ ble: 'none' })` (navegador sem Bluetooth) ou `'error'` (seletor falha).
@@ -74,11 +75,12 @@ E ao fim de **todo** teste, verifica que não houve erro de JavaScript na págin
 | Método | Faz |
 |---|---|
 | `open()` / `reload()` | abre / recarrega e espera o app |
-| `pairBike7()` | busca, adiciona e seleciona a Bike 7 |
-| `startWithSim()` | seleciona a simulada e inicia |
+| `pairBike7()` | busca, adiciona e seleciona a Bike 7 (na própria tela Configurar) |
+| `start()` | toca "Iniciar aula" e dá play no relógio (parado no tempo total) |
+| `startWithSim()` | seleciona a simulada e `start()` |
 | `advert(o)` | manda uma leitura da bike |
 | `advance(ms)` / `tick()` | avança o relógio do app / espera um redesenho (1,15 s) |
-| `setClock('245')` | responde o prompt e toca no relógio |
+| `setClock('245')` | recebe o tempo **já passado**, converte pro que falta (`42:15` numa aula de 45), abre o relógio do topo, toca no tempo, digita no `#clockInput` (`typeRemaining`) e fecha (OK, ou play se estava parado) |
 | `card(16)` / `states()` / `tickLeft(8)` | cartão de um marco / `'done,now,-,…'` / posição do risco em % |
 
 ### Exemplo
@@ -97,11 +99,11 @@ test('sem sinal: segura os valores por 20 s', async ({ app }) => {
 
 ### Arquivos
 
-- `setup-and-bikes.spec.ts` — Configurar, cadastro via Bluetooth, formato antigo, simulada, sem Bluetooth, erro.
-- `live.spec.ts` — marcos, velocímetro nos limites, glitch, sinal de 20 s, FTP, relógio, tempo ao lado da zona, toques, refresh, +50, fim.
-- `layout.spec.ts` — 320, 360, 375, 390 e 420 px: sem rolagem lateral, menu dentro do cartão, velocímetro sem invadir o giro.
+- `setup-and-bikes.spec.ts` — Configurar (sem menu, sem kcal inicial), iniciar só com a bike respondendo, relógio parado até o play e kcal inicial da bike, entrar com a aula andando, cadastro via Bluetooth, formato antigo, simulada, menu da aula (5 botões), aba Bike sem encerrar, editar aula com confirmação, sem Bluetooth, erro.
+- `live.spec.ts` — marcos, velocímetro nos limites, glitch, sinal de 20 s, FTP, relógio (modal em contagem regressiva, ajustes na hora), tempo ao lado da zona, toques, refresh, +50, fim.
+- `layout.spec.ts` — 320, 360, 375, 390 e 420 px: sem rolagem lateral, modal do relógio e menu dentro do cartão, velocímetro sem invadir o giro.
 
-**Como os testes acham os elementos:** nunca por classe (com CSS Modules o nome muda no build). Usam `id` (`#rpm`, `#zone`, `#intervals`), `getByTestId(...)` (`interval`, `interval-goal`, `interval-tick`, `bike`, `bike-name`, `bike-select`, `gauge`, `gauge-band`, `rpm-box`, `panel-status`, `phone`, `nav`) e atributos de estado (`data-state="done|now|locked"`, `data-selected`, `data-on`, `data-visible`).
+**Como os testes acham os elementos:** nunca por classe (com CSS Modules o nome muda no build). Usam `id` (`#rpm`, `#zone`, `#intervals`), `getByTestId(...)` (`interval`, `interval-goal`, `interval-tick`, `bike`, `bike-name`, `bike-select`, `gauge`, `gauge-band`, `rpm-box`, `panel-status`, `phone`, `nav`) e atributos de estado (`data-state="done|now|locked"`, `data-selected`, `data-on`, `data-visible`, `data-running` no `#clockModal`, `data-step` nas setas do relógio — `min+`, `min-`, `sec+`, `sec-` — e no − / + do FTP — `ftp-`, `ftp+`).
 
 ### Quando um teste falha
 
@@ -125,7 +127,7 @@ Esse abre o navegador e para em cada passo.
 
 1. **É cálculo?** Coloque a lógica em `domain/` e teste com Vitest (rápido, sem tela).
 2. **É fluxo do app sem tela?** `store.test.ts` com `fakeClock` e `memoryStorage`.
-3. **Depende de clique, prompt, layout ou do Bluetooth na tela?** Playwright com o `AppDriver`.
+3. **Depende de clique, modal, layout ou do Bluetooth na tela?** Playwright com o `AppDriver`.
 
 Rode 3 vezes seguidas pra pegar teste instável: `npx playwright test --repeat-each=3`.
 

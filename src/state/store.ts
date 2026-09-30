@@ -10,8 +10,11 @@ import * as storage from './storage';
 import type { Config, KV } from './storage';
 
 export type View = 'setup' | 'bikes' | 'live';
-export type Field = 'startKcal' | 'goal' | 'total' | 'interval' | 'ftp';
+/** Campos da tela Configurar. A kcal inicial não é digitada: vem da bike no play (`beginClass`). */
+export type Field = 'goal' | 'total' | 'interval' | 'ftp';
 export type Notice = { kind: 'noBle' } | { kind: 'bleError'; name: string; message: string; hasBle: boolean };
+/** Por que o "Iniciar aula" não abriu o relógio: nenhuma bike escolhida ou a escolhida não está respondendo. */
+export type StartBlock = 'noBike' | 'noSignal';
 
 /** Sem anúncio da bike há mais que isso: considera sem sinal (dispara a retomada automática da escuta). */
 export const STALE_MS = 4000;
@@ -63,6 +66,16 @@ export class AppStore {
   detected = new Map<number, { reading: KeiserReading; lastSeen: number }>();
   session: Session | null = null;
   notice: Notice | null = null;
+  startBlock: StartBlock | null = null;
+  /**
+   * Modal do relógio aberto. `draft` = tempo restante (min) enquanto o relógio está parado: antes do play
+   * (ainda sem aula) ou depois de desfazer um marco. Com o relógio andando, o modal mostra e acerta o relógio de verdade.
+   */
+  clockModal: { draft: number } | null = null;
+  /** modal de FTP aberto (o valor digitado fica no próprio modal até salvar) */
+  ftpModal = false;
+  /** modal "Editar aula" aberto: pede confirmação antes de encerrar a aula */
+  endModal = false;
 
   /** kcal veio do localStorage (refresh) — a próxima leitura real substitui sem o filtro de glitch */
   private kcalRestored = false;
@@ -154,8 +167,9 @@ export class AppStore {
   }
 
   /* ---------- navegação (não reinicia nada) ---------- */
+  /** Sem aula só existe a tela Configurar; durante a aula, o painel e a aba Bike (Configurar só encerrando a aula). */
   nav(v: View): void {
-    this.view = v === 'live' && !this.session ? 'setup' : v;
+    this.view = !this.session ? 'setup' : v === 'setup' ? 'live' : v;
     this.emit();
   }
 
@@ -166,10 +180,20 @@ export class AppStore {
     this.saveCfg();
     this.emit();
   }
-  /** FTP muda com frequência durante a aula: o botão do topo muda direto, em qualquer tela */
+  /** FTP muda com frequência durante a aula: o botão do topo abre o modal de FTP, sem sair do painel */
+  openFtp(): void {
+    this.ftpModal = true;
+    this.emit();
+  }
+  closeFtp(): void {
+    this.ftpModal = false;
+    this.emit();
+  }
+  /** salva o FTP (o campo da tela Configurar acompanha) e fecha o modal */
   setFtp(n: number): void {
     this.cfg = { ...this.cfg, ftp: n };
     this.inputs = { ...this.inputs, ftp: String(n) };
+    this.ftpModal = false;
     this.saveCfg();
     this.emit();
   }
@@ -187,6 +211,7 @@ export class AppStore {
     this.cfg = { ...this.cfg, chosen: id };
     this.saveCfg();
     if (isSim(id)) this.sim = null;
+    this.startBlock = null;
     this.emit();
   }
   addBike(id: number): void {
@@ -227,9 +252,10 @@ export class AppStore {
       } else kcal = guardKcal(this.live.kcal > 0 ? this.live.kcal : null, data.kcal);
       const { watts, rpm, gear, dist, distUnit, hr, min, sec } = data;
       this.live = { kcal, watts, rpm, gear, dist, distUnit, hr, min, sec, lastSeen: now };
+      if (this.startBlock === 'noSignal') this.startBlock = null; // a bike voltou a responder: some o aviso
     }
-    // no painel quem redesenha é o relógio de 1 s; na aba Bikes a lista de detectadas acompanha na hora
-    if (this.view === 'bikes') this.emit();
+    // no painel quem redesenha é o relógio de 1 s; onde há a lista de detectadas, ela acompanha na hora
+    if (this.view !== 'live') this.emit();
   }
 
   /* ---------- Bluetooth: avisos ---------- */
@@ -244,24 +270,99 @@ export class AppStore {
   bleError(e: unknown, hasBle: boolean): void {
     const err = e as { name?: string; message?: string } | null;
     this.notice = { kind: 'bleError', name: err?.name || 'Erro', message: err?.message || String(e || 'Erro desconhecido'), hasBle };
-    this.view = 'bikes'; // o aviso fica na aba Bikes (ex. erro ao tocar em "Reconectar" no painel)
+    // o aviso fica junto da escolha da bike (ex. erro ao tocar em "Reconectar" no painel leva pra aba Bike)
+    this.view = this.session ? 'bikes' : 'setup';
     this.emit();
   }
 
   /* ---------- aula ---------- */
-  startClass(): void {
+  /** a bike escolhida está mandando leitura agora (a simulada sempre responde) */
+  bikeReady(): boolean {
+    return isSim(this.cfg.chosen) || this.hasBike();
+  }
+  /**
+   * "Iniciar aula": só com a bike respondendo. Abre o relógio parado no tempo total da aula, pra dar play
+   * quando a aula começar de verdade (a aula só é criada no play, em `beginClass`).
+   */
+  requestStart(): void {
     const c = { ...this.cfg };
-    for (const f of ['startKcal', 'goal', 'total', 'interval', 'ftp'] as Field[]) Object.assign(c, parseField(f, this.inputs[f]));
+    for (const f of ['goal', 'total', 'interval', 'ftp'] as Field[]) Object.assign(c, parseField(f, this.inputs[f]));
     this.cfg = c;
     this.saveCfg();
-    if (isSim(c.chosen)) {
-      this.sim = null;
-      this.live.kcal = c.startKcal;
-    } else if (!this.hasBike()) this.live.kcal = c.startKcal;
-    this.session = session.newSession(this.plan, this.now());
-    this.saveClass();
-    this.view = 'live';
+    this.startBlock = c.chosen == null ? 'noBike' : this.bikeReady() ? null : 'noSignal';
+    if (!this.startBlock) this.clockModal = { draft: c.total };
     this.emit();
+  }
+  /** Play no relógio: sem aula, cria a aula com a kcal que a bike mostra agora; depois o relógio passa a andar. */
+  beginClass(): void {
+    const m = this.clockModal;
+    if (!m) return;
+    if (!this.session) {
+      this.cfg = { ...this.cfg, startKcal: Math.max(0, Math.round(this.live.kcal)) };
+      this.saveCfg();
+      this.session = session.newSession(this.plan, this.now());
+      this.view = 'live';
+    }
+    this.clockModal = null;
+    this.syncClock(this.cfg.total - m.draft); // sempre muda o relógio: salva a aula e redesenha
+  }
+  /** "Editar aula" no topo: só abre a confirmação (encerrar descarta marcos e relógio) */
+  askEndClass(): void {
+    if (!this.session) return;
+    this.endModal = true;
+    this.emit();
+  }
+  cancelEndClass(): void {
+    this.endModal = false;
+    this.emit();
+  }
+  /** Confirmou "Editar aula": encerra a aula (apaga o salvo) e volta pra tela Configurar. */
+  endClass(): void {
+    this.session = null;
+    this.endModal = false;
+    this.clockModal = null;
+    this.ftpModal = false;
+    this.forecastCache = null;
+    storage.clearClass(this.deps.storage);
+    this.view = 'setup';
+    this.emit();
+  }
+
+  /* ---------- relógio da aula (modal) ---------- */
+  clockRunning(): boolean {
+    return !!this.session?.clock;
+  }
+  /** tempo restante da aula, em minutos: pelo relógio, se ele está andando; senão, o que está no modal */
+  remaining(): number | null {
+    const t = this.classMin();
+    if (t != null) return Math.max(0, this.cfg.total - t);
+    return this.clockModal?.draft ?? null;
+  }
+  /** Abre o relógio durante a aula. Parado (depois de desfazer um marco), começa no fim do último marco concluído. */
+  openClock(): void {
+    if (!this.session) return;
+    const { intervals, confirmedIdx } = this.session;
+    const at = confirmedIdx > 0 ? intervals[confirmedIdx - 1].end : 0;
+    this.clockModal = { draft: this.cfg.total - at };
+    this.emit();
+  }
+  /** Fecha o modal; antes do play isso cancela o início (continua na tela Configurar). */
+  closeClock(): void {
+    this.clockModal = null;
+    this.emit();
+  }
+  /** Muda o tempo restante em `deltaMin`. Com o relógio andando, acerta na hora (como digitar o tempo). */
+  shiftRemaining(deltaMin: number): void {
+    const r = this.remaining();
+    if (r != null) this.setRemaining(r + deltaMin);
+  }
+  setRemaining(min: number): void {
+    const r = Math.max(0, Math.min(this.cfg.total, min));
+    if (this.clockRunning()) this.syncClock(this.cfg.total - r);
+    else if (this.clockModal) {
+      this.clockModal = { draft: Math.round(r * 60) / 60 }; // parado: segundos inteiros (o +1 s não acumula erro)
+      this.emit();
+    }
   }
   confirmInterval(i: number): void {
     this.updateSession((s) => session.confirm(s, i, this.live.kcal, this.plan, this.now()));
@@ -290,7 +391,7 @@ export class AppStore {
   /* ---------- relógio de 1 s ---------- */
   tick(): void {
     if (isSim(this.cfg.chosen)) {
-      const step = simStep(this.sim, this.now(), this.live.kcal || this.cfg.startKcal || 0);
+      const step = simStep(this.sim, this.now(), this.live.kcal);
       this.sim = step.state;
       this.ingest(step.reading);
     }
@@ -307,17 +408,16 @@ export class AppStore {
 }
 
 function inputsFrom(c: Config): Record<Field, string> {
-  return { startKcal: String(c.startKcal), goal: String(c.goal), total: String(c.total), interval: String(c.interval), ftp: String(c.ftp) };
+  return { goal: String(c.goal), total: String(c.total), interval: String(c.interval), ftp: String(c.ftp) };
 }
 
-/** Texto do campo -> número, com os mesmos limites de sempre (aula e intervalo ≥ 1; kcal inicial e FTP ≥ 0). */
+/** Texto do campo -> número, com os mesmos limites de sempre (aula e intervalo ≥ 1; FTP ≥ 0). */
 function parseField(field: Field, text: string): Partial<Config> {
   const n = +text || 0;
   switch (field) {
     case 'goal': return { goal: n };
     case 'total': return { total: Math.max(1, +text || 1) };
     case 'interval': return { interval: Math.max(1, +text || 1) };
-    case 'startKcal': return { startKcal: Math.max(0, n) };
     case 'ftp': return { ftp: Math.max(0, n) };
   }
 }

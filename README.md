@@ -9,29 +9,35 @@ Painel de ritmo de calorias para bike indoor **Keiser M3**, com leitura ao vivo 
 <table>
   <tr>
     <td align="center"><img src="screenshots/live.png" width="260" alt="Painel ao vivo: velocímetro de %FTP, rpm, kcal, watts, marcos e previsão"></td>
-    <td align="center"><img src="screenshots/setup.png" width="260" alt="Tela de configuração da aula"></td>
-    <td align="center"><img src="screenshots/bikes.png" width="260" alt="Tela de bikes via Bluetooth"></td>
+    <td align="center"><img src="screenshots/setup.png" width="260" alt="Tela de configuração da aula: metas, FTP e bike via Bluetooth"></td>
+    <td align="center"><img src="screenshots/clock.png" width="260" alt="Relógio da aula parado, esperando o play"></td>
   </tr>
   <tr>
     <td align="center"><b>Painel ao vivo</b></td>
     <td align="center"><b>Configurar</b></td>
-    <td align="center"><b>Bikes</b></td>
+    <td align="center"><b>Relógio da aula</b></td>
   </tr>
 </table>
 
 ## O que faz
 
-Dada uma **kcal inicial** (o que já está no mostrador da bike), uma **meta de calorias**, o **tempo da aula** e um **intervalo** em minutos, o app quebra a aula em blocos (ex. a cada 8 min) e mostra, pra cada um, a meta cumulativa e quanto falta fazer naquele bloco especificamente.
+Dada uma **meta de calorias**, o **tempo da aula** e um **intervalo** em minutos, o app quebra a aula em blocos (ex. a cada 8 min) e mostra, pra cada um, a meta cumulativa e quanto falta fazer naquele bloco especificamente. A **kcal inicial** não é digitada: é a que a bike mostra no momento em que a aula começa.
 
-A confirmação começa **manual**: de olho no relógio da aula, você toca no marco atual (ex. minuto 8) quando chega nele — só dá pra confirmar o próximo da fila, em sequência, e só dá pra desfazer o último confirmado (pra corrigir um toque errado).
+### Início da aula: relógio sincronizado
 
-Cada toque manual **acerta um relógio de referência** (o toque no marco 8 = minuto 8 da aula). Com o relógio acertado, o **tempo da aula** (MM:SS) aparece no topo do painel, ao lado do selo da zona, e alimenta um **risco vertical** em cima da barra de kcal do marco atual, que mostra onde você deveria estar no bloco (4 min depois do toque no 8, o risco está na metade do bloco 8→16). Quando o risco chega ao fim, o marco é **concluído sozinho** e o app já recalcula e passa pro próximo. Tocar de novo num marco reacerta o relógio; desfazer um marco para o relógio até o próximo toque.
+Toda a preparação fica numa tela só (**Configurar**): meta, FTP, tempo da aula, intervalo e a bike. Ao tocar em **Iniciar aula**, a bike escolhida precisa estar **respondendo** (mandando leitura pelo Bluetooth agora) — se não estiver, a aula não começa e aparece um aviso pra pedalar e conferir a conexão. A Bike simulada sempre responde.
 
-Também dá pra acertar o relógio sem esperar o primeiro marco: no painel ao vivo há um **botão de relógio** no topo, que pede o tempo da aula agora. Pra facilitar a digitação, aceita `02:45`, `2:45`, `02 45`, `2 45`, `0245` (MMSS) e `245` (MSS) — todos = 2 min 45 s. Só dígitos com 3 ou mais casas: os 2 últimos são os segundos; com 1 ou 2 casas, é só minutos (ex. `3` = 3 min). O risco já aparece no marco atual — no primeiro, logo no começo da aula — e a previsão começa na hora. O prompt já vem preenchido com o tempo que o app estima, pra conferir ou corrigir. O tempo digitado manda nos marcos: os que terminam até esse tempo ficam concluídos (os que faltavam são concluídos sozinhos, como no avanço normal) e os já confirmados que terminam depois dele são **desmarcados**, voltando as metas ao que eram antes deles — ex. com 8 e 16 confirmados, digitar `10:00` desmarca o 16 e o risco fica em 25% do bloco 8→16. Tocar num marco continua acertando o relógio do mesmo jeito.
+Com a bike ok, abre o **relógio da aula**, em contagem regressiva como o da sala (40:00, 39:59…), **parado** no tempo total. Enquanto a aula não começa, dá pra ajustar só o tempo, como num timer: as setas em cima e embaixo dos minutos e dos segundos somam ou tiram 1 (segurando, repetem), ou toque no tempo e digite o que falta (útil se você chegou com a aula já andando). Na hora em que a aula começa, toque em **Iniciar** (play): a aula é criada com a kcal que a bike mostra naquele instante e o relógio passa a andar. "Cancelar" volta pra Configurar sem começar nada.
+
+Com o relógio andando, o **tempo da aula** (MM:SS) aparece no topo do painel, ao lado do selo da zona, e alimenta um **risco vertical** em cima da barra de kcal do marco atual, que mostra onde você deveria estar no bloco (4 min depois do minuto 8, o risco está na metade do bloco 8→16). Quando o risco chega ao fim, o marco é **concluído sozinho** e o app já recalcula e passa pro próximo.
+
+Durante a aula, o **botão de relógio** no topo abre o mesmo relógio: os ajustes valem na hora, pra acompanhar o relógio da sala se ele estiver diferente. Pra digitar, aceita `38:15`, `38 15` e `3815` (MMSS) — e também `815` (MSS) ou só minutos (`3` = 3 min). O tempo acertado manda nos marcos: os que terminam até esse ponto ficam concluídos (os que faltavam são concluídos sozinhos, como no avanço normal) e os já confirmados que terminam depois dele são **desmarcados**, voltando as metas ao que eram antes deles — ex. com 8 e 16 confirmados, acertar o relógio em 35:00 (minuto 10) desmarca o 16 e o risco fica em 25% do bloco 8→16.
+
+Os marcos também podem ser tocados: tocar no marco atual o confirma e acerta o relógio (toque no 8 = minuto 8 da aula); só dá pra confirmar o próximo da fila, em sequência, e só dá pra desfazer o último confirmado (pra corrigir um toque errado). Desfazer um marco **para o relógio**; pra ele voltar a andar, toque em outro marco ou abra o relógio, ajuste e dê play.
 
 No painel ao vivo, o quadro da bike fica fixo em cima, a **previsão de kcal no fim da aula** fica fixa no rodapé e só a lista de marcos rola; ela acompanha sozinha o marco atual (o último concluído fica no topo), sem atrapalhar se você rolar na mão.
 
-A previsão usa o relógio de referência: pega o ritmo médio da aula até agora (kcal feitas desde a kcal inicial ÷ minutos de aula) e projeta pro tempo que falta, mostrando também quanto fica acima (verde) ou abaixo (vermelho) da meta. Usa a média da aula inteira, e não só dos últimos minutos, porque a aula alterna zonas de propósito. Pra não distrair, ela **só aparece depois de 5 min de aula** (antes disso o ritmo ainda oscila demais; o rodapé mostra "previsão a partir dos 5 min") e **é atualizada a cada 15 s**, não a todo segundo — mas recalcula na hora quando você acerta ou desfaz o relógio ou muda a meta. Antes de acertar o relógio (pelo botão de relógio ou pelo primeiro toque num marco) ou depois de desfazer um marco, ainda não há previsão. Depois do fim da aula, mostra o total.
+A previsão usa o relógio de referência: pega o ritmo médio da aula até agora (kcal feitas desde a kcal inicial ÷ minutos de aula) e projeta pro tempo que falta, mostrando também quanto fica acima (verde) ou abaixo (vermelho) da meta. Usa a média da aula inteira, e não só dos últimos minutos, porque a aula alterna zonas de propósito. Pra não distrair, ela **só aparece depois de 5 min de aula** (antes disso o ritmo ainda oscila demais; o rodapé mostra "previsão a partir dos 5 min") e **é atualizada a cada 15 s**, não a todo segundo — mas recalcula na hora quando você acerta ou desfaz o relógio. Com o relógio parado (depois de desfazer um marco), não há previsão. Depois do fim da aula, mostra o total.
 
 A cada confirmação, o app recalcula os blocos seguintes com base na kcal real naquele momento: se você está adiantado, o que falta pros próximos blocos diminui; se está atrasado, aumenta. Ao superar a meta final, a lista sempre acrescenta um próximo nível de +50 kcal, pra continuar acompanhando quem passar do objetivo.
 
@@ -39,13 +45,14 @@ A cada confirmação, o app recalcula os blocos seguintes com base na kcal real 
 
 As bikes só entram na lista **via Bluetooth**: você busca, toca em "+" na bike detectada e ela fica salva (pelo número que aparece no console dela, ex. "Bike 7"). Não dá pra cadastrar manualmente nem editar — só excluir. Existe sempre uma **Bike simulada** fixa como última opção da lista, útil pra testar o app sem uma bike de verdade por perto.
 
-### Fluxo (3 telas, no menu do topo)
+### Fluxo
 
-1. **Configurar** — kcal inicial, meta (kcal), tempo da aula, intervalo (min) e **FTP (watts)**; mostra a bike selecionada (trocar leva pra aba Bikes) e o botão "Iniciar aula".
-2. **Bikes** — busca via Bluetooth, adiciona as detectadas, exclui as que não usa mais, e escolhe qual está em uso agora; também tem o botão "Iniciar aula", pra começar direto dali.
-3. **Painel ao vivo** — um cartão por marco (minuto final em destaque, meta cumulativa, quanto falta no bloco), que você toca pra confirmar conforme chega nos minutos; e o essencial da bike: %FTP e rpm em destaque (o que o instrutor pede), kcal e watts logo abaixo, colados nos marcos.
+1. **Configurar** (antes da aula, sem menu no topo) — meta (kcal), **FTP (watts)**, tempo da aula e intervalo (min); logo abaixo, a bike: busca via Bluetooth, adiciona as detectadas, exclui as que não usa mais e escolhe qual está em uso; e o botão "Iniciar aula", que abre o relógio.
+2. **Painel ao vivo** — um cartão por marco (minuto final em destaque, meta cumulativa, quanto falta no bloco); e o essencial da bike: %FTP e rpm em destaque (o que o instrutor pede), kcal e watts logo abaixo, colados nos marcos.
 
-Durante a aula, com a bike conectada, você não digita nada — só confirma os marcos de minuto. Se uma leitura de kcal vier zerada (glitch do Bluetooth), o app mantém o último valor válido em vez de mostrar zero.
+Durante a aula, o topo só tem o que faz sentido mudar sem recomeçar: **painel**, **bike** (trocar de bike ou reconectar o Bluetooth, sem encerrar a aula), **relógio**, **FTP** e **editar aula** — este pede confirmação, encerra a aula (marcos e relógio são descartados) e volta pra Configurar. Metas, tempo e intervalo só mudam assim, recomeçando.
+
+Com a bike conectada e o relógio acertado, você não digita nada durante a aula. Se uma leitura de kcal vier zerada (glitch do Bluetooth), o app mantém o último valor válido em vez de mostrar zero.
 
 ### %FTP e zonas
 
@@ -59,7 +66,7 @@ O painel ao vivo mostra o **%FTP** — watts de agora divididos pelo FTP configu
 | 4 | 90–105% | amarelo |
 | 5 | acima de 105% | vermelho |
 
-Como é normal mudar o FTP durante a aula, há um botão de FTP no topo direito (ao lado de Configurar/Bikes/Painel), disponível em qualquer tela: ele abre um prompt nativo com o FTP atual e a mudança vale na hora.
+Como é normal mudar o FTP durante a aula, há um botão de FTP no topo: ele abre um modal com o FTP atual, pra digitar ou ajustar de 5 em 5 (− / +, segurando repete), mostrando na hora quanto os watts de agora dariam de %FTP com o valor novo; ao salvar, vale na hora.
 
 Falhas curtas de leitura não apagam o painel: %FTP, rpm e watts continuam mostrando o último valor por até **20 s sem sinal**. Só depois disso o %FTP vira traço, o ponteiro e o selo da zona somem e aparecem o aviso "sem sinal" e o botão "Reconectar bike" (a retomada automática da escuta em segundo plano continua começando após 4 s sem sinal). Com FTP 0/vazio, o velocímetro fica oculto.
 
@@ -73,7 +80,7 @@ A Keiser M Series **transmite** os dados por BLE (broadcast), sem pareamento. O 
 - **iPhone / iPad:** Safari e Chrome do iOS **não** têm Web Bluetooth. Use o navegador **Bluefy** (grátis na App Store), que adiciona suporte a Web Bluetooth no iOS.
 - **Requer HTTPS** (ou localhost) — qualquer host estático com HTTPS serve.
 
-Para testar a interface sem uma bike por perto, escolha a **Bike simulada** (sempre disponível, última opção na aba Bikes).
+Para testar a interface sem uma bike por perto, escolha a **Bike simulada** (sempre disponível, última opção da lista de bikes).
 
 ### Reconexão (tela travada / refresh)
 
@@ -81,8 +88,8 @@ No iPhone (Bluefy), travar a tela ou recarregar a página costuma interromper a 
 
 - **A aula sobrevive a refresh**: marcos confirmados, histórico pra desfazer e última kcal ficam salvos no `localStorage`, e o app volta direto pro painel (até 60 min depois do fim previsto da aula).
 - **Retomada automática**: ao abrir a página, ao voltar pra tela (`visibilitychange`/`pageshow`) e a cada 10 s sem sinal, o app cancela e reinicia a escuta das bikes já autorizadas — incluindo as que o navegador ainda lembra via `bluetooth.getDevices()`, sem abrir o seletor.
-- **Botão "Reconectar bike"** no painel ao vivo quando está sem sinal: abre o seletor Bluetooth direto dali, sem ter que ir até a aba Bikes.
-- **Tela acesa durante a aula** (Screen Wake Lock, onde o navegador suportar), pra evitar o bloqueio automático.
+- **Botão "Reconectar bike"** no painel ao vivo quando está sem sinal: abre o seletor Bluetooth direto dali, sem ter que ir até a aba Bike.
+- **Tela acesa durante a aula e esperando o play** (Screen Wake Lock, onde o navegador suportar), pra evitar o bloqueio automático.
 - No refresh/fechamento (`pagehide`), a escuta é liberada pra que a página nova consiga assumir a bike na hora.
 
 ## Desenvolvimento
@@ -112,7 +119,7 @@ src/
   ble/         Bluetooth: pacote Keiser (keiser.ts), escuta e reconexão (bluetooth.ts), bike simulada
   state/       estado do app e ações (store.ts) e localStorage (storage.ts)
   app/         runtime: liga o estado ao Bluetooth, ao relógio de 1 s, ao wake lock e aos eventos da página
-  components/  telas (Preact): Header, SetupView, BikesView, LiveView, BikePanel, FtpGauge, IntervalList, Forecast
+  components/  telas (Preact): Header, SetupView, BikesView (e BikePicker), ClockSync (relógio da aula), FtpDialog, EndClassDialog, Modal, LiveView, BikePanel, FtpGauge, IntervalList, Forecast
   global.css   cores, base da página, ícones e botões; o resto do estilo fica em components/*.module.css (CSS Modules)
 e2e/           testes de fluxo com um Bluetooth falso que manda pacotes Keiser de verdade e um relógio controlável
 scripts/       screenshots.mjs (prints do README)

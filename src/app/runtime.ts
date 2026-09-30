@@ -29,11 +29,11 @@ export function createRuntime(win: Window = window): Runtime {
   });
   store.load();
 
-  // mantém a tela acesa durante a aula (evita o bloqueio automático, que derruba o Bluetooth no iPhone)
+  // mantém a tela acesa durante a aula e esperando o play (evita o bloqueio automático, que derruba o Bluetooth no iPhone)
   let wakeLock: WakeLockSentinelLike | null = null;
   let wakePending = false;
   async function keepAwake() {
-    if (wakeLock || wakePending || !store.classActive() || !nav.wakeLock || doc.visibilityState !== 'visible') return;
+    if (wakeLock || wakePending || !(store.classActive() || store.clockModal) || !nav.wakeLock || doc.visibilityState !== 'visible') return;
     wakePending = true;
     try {
       wakeLock = await nav.wakeLock.request('screen');
@@ -50,11 +50,12 @@ export function createRuntime(win: Window = window): Runtime {
     else if (r.kind === 'error') store.bleError(r.error, ble.supported);
   }
 
-  // começar a aula já pede a tela acesa
-  let lastStartedAt = store.session?.startedAt;
+  // tocar em "Iniciar aula" (abre o relógio) e dar play já pedem a tela acesa
+  const awakeKey = () => `${store.session?.startedAt}|${!!store.clockModal}`;
+  let lastKey = awakeKey();
   const unsubscribe = store.subscribe(() => {
-    const startedAt = store.session?.startedAt;
-    if (startedAt !== lastStartedAt) { lastStartedAt = startedAt; void keepAwake(); }
+    const key = awakeKey();
+    if (key !== lastKey) { lastKey = key; void keepAwake(); }
   });
 
   const onVisibility = () => {

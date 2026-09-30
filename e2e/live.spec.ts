@@ -1,12 +1,13 @@
 import { expect, test, type AppDriver } from './fixtures';
 
-/** Bike 7 conectada com 30 kcal e aula iniciada (padrões: 0 → 700 kcal, 45 min, blocos de 8, FTP 150). */
+/** Bike 7 com 0 kcal no play (relógio em 45:00) e 30 kcal logo depois (padrões: 0 → 700 kcal, 45 min, blocos de 8, FTP 150). */
 async function startClass(app: AppDriver) {
   await app.open();
   await app.pairBike7();
+  await app.advert({ kcal: 0 });
+  await app.start();
   await app.advert({ kcal: 30 });
-  await app.$('startBtnBikes').click();
-  await expect(app.$('live')).toBeVisible();
+  await expect(app.$('kcal')).toHaveText('30');
 }
 
 test.describe('início da aula', () => {
@@ -19,11 +20,11 @@ test.describe('início da aula', () => {
     await expect(page.getByTestId('interval-goal')).toHaveText(['124 kcal', '249 kcal', '373 kcal', '498 kcal', '622 kcal', '700 kcal']);
     await expect(page.getByTestId('interval-delta')).toHaveText(['+124 kcal', '+125 kcal', '+124 kcal', '+125 kcal', '+124 kcal', '+78 kcal']);
     expect(await app.states()).toBe('now,-,-,-,-,-');
-    expect(await app.tickLeft(8)).toBeNull();
-    await expect(app.$('fcLabel')).toHaveText('previsão: acerte o relógio');
+    expect(await app.tickLeft(8)).toBeLessThan(1); // o play já pôs o relógio andando do minuto 0
+    await expect(app.$('fcLabel')).toHaveText('previsão a partir dos 5 min');
     await expect(app.$('fcKcal')).toHaveText('–');
     await expect(app.$('fcDiff')).toHaveCount(0);
-    await expect(app.$('classTime')).toHaveCount(0);
+    await expect(app.$('classTime')).toHaveText(/^schedule00:0\d$/);
   });
 });
 
@@ -98,41 +99,55 @@ test.describe('painel ao vivo', () => {
     await expect(app.$('reconnect')).toHaveCount(0);
   });
 
-  test('FTP pelo botão do topo', async ({ app }) => {
+  test('FTP pelo modal do topo', async ({ app, page }) => {
     await startClass(app);
     await app.advert({ watts: 160 });
-    await app.answerPrompt('200');
     await app.$('navFtp').click();
+    await expect(app.$('ftpInput')).toHaveValue('150');
+    await app.$('ftpInput').fill('200');
+    await expect(app.$('ftpInfo')).toHaveText('Agora: 160 W = 80% · zona 3'); // prévia antes de salvar
+    await expect(app.$('ftpPct')).toHaveText('107'); // o painel só muda ao salvar
+    await app.$('ftpSave').click();
+    await expect(app.$('ftpModal')).toHaveCount(0);
     await expect(app.$('ftpPct')).toHaveText('80');
     await expect(app.$('zone')).toHaveText('Zona 3');
-    expect((await app.prompts())[0]).toEqual(['FTP (watts)', '150']);
 
-    await app.answerPrompt('abc');
+    // vazio não salva; cancelar mantém o que estava
     await app.$('navFtp').click();
+    await app.$('ftpInput').fill('');
+    await expect(app.$('ftpSave')).toBeDisabled();
+    await app.$('ftpCancel').click();
     await expect(app.$('ftpPct')).toHaveText('80');
 
-    await app.answerPrompt('0');
+    // − / + de 5 em 5; Enter salva
     await app.$('navFtp').click();
+    await expect(app.$('ftpInput')).toHaveValue('200');
+    await page.locator('[data-step="ftp+"]').click();
+    await page.locator('[data-step="ftp+"]').click();
+    await page.locator('[data-step="ftp-"]').click();
+    await expect(app.$('ftpInput')).toHaveValue('205');
+    await app.$('ftpInput').press('Enter');
+    await expect(app.$('ftpModal')).toHaveCount(0);
+    await expect(app.$('ftpPct')).toHaveText('78');
+
+    await app.$('navFtp').click();
+    await app.$('ftpInput').fill('0');
+    await app.$('ftpSave').click();
     await expect(app.$('ftpBox')).toHaveCount(0);
     await expect(app.$('zone')).toHaveCount(0);
 
-    await app.answerPrompt('150');
+    // Esc fecha sem salvar
     await app.$('navFtp').click();
-    await expect(app.$('ftpBox')).toBeVisible();
-    await app.$('navSetup').click();
-    await expect(app.$('ftp')).toHaveValue('150');
+    await app.$('ftpInput').fill('150');
+    await page.keyboard.press('Escape');
+    await expect(app.$('ftpModal')).toHaveCount(0);
+    await expect(app.$('ftpBox')).toHaveCount(0);
   });
 });
 
 test.describe('relógio da aula', () => {
-  test('acertar pelo botão mostra o risco, o tempo e a previsão', async ({ app }) => {
+  test('acertar pelo botão mostra o risco, o tempo e a previsão', async ({ app, page }) => {
     await startClass(app);
-    await app.setClock(null);
-    const [first] = await app.prompts();
-    expect(first[0]).toMatch(/02:45.*0245.*245/s);
-    expect(first[1]).toBe('');
-    expect(await app.tickLeft(8)).toBeNull();
-
     await app.setClock('0245');
     expect(await app.tickLeft(8)).toBeCloseTo(34.4, 0);
     await expect(app.$('classTime')).toHaveText(/^schedule0?2:4[5-6]$/);
@@ -140,12 +155,35 @@ test.describe('relógio da aula', () => {
     await expect(app.$('fcKcal')).toHaveText('–');
     await expect(app.$('fcDiff')).toHaveCount(0);
 
-    await app.setClock(null);
-    expect((await app.prompts())[2][1]).toMatch(/^02:4[5-6]$/);
+    // o modal mostra o que falta (42:15) e os ajustes valem na hora
+    await app.$('navClock').click();
+    await expect(app.$('clockTime')).toHaveText(/^42:1[4-5]$/);
+    await page.locator('[data-step="min-"]').click(); // falta menos = mais tempo de aula
+    await expect(app.$('classTime')).toHaveText(/^schedule03:4[5-6]$/);
 
-    await app.setClock('2:75');
-    expect(await app.alerts()).toEqual(['Tempo inválido. Use MM:SS, MMSS ou MSS — ex. 02:45, 0245 ou 245.']);
-    expect(await app.tickLeft(8)).toBeGreaterThan(34);
+    // digitar: vem com o tempo de agora; inválido avisa ali mesmo e não muda nada
+    await app.$('clockTime').click();
+    await expect(app.$('clockInput')).toBeFocused();
+    await expect(app.$('clockInput')).toHaveValue(/^41:1[4-5]$/);
+    await app.$('clockInput').fill('2:75');
+    await app.$('clockTypeOk').click();
+    await expect(app.$('clockInputHelp')).toHaveText('Tempo inválido. Use MM:SS, MMSS ou MSS — ex. 38:15, 3815 ou 815.');
+    await expect(app.$('clockInput')).toHaveAttribute('aria-invalid', 'true');
+    await app.$('clockInput').fill('41'); // corrigindo, o aviso some
+    await expect(app.$('clockInputHelp')).toHaveText(/^MM:SS/);
+    await page.keyboard.press('Escape'); // Esc volta pro relógio, sem aplicar
+    await expect(app.$('clockInput')).toHaveCount(0);
+    await expect(app.$('clockModal')).toBeVisible();
+    await app.$('clockOk').click();
+    await expect(app.$('clockModal')).toHaveCount(0);
+    await expect(app.$('classTime')).toHaveText(/^schedule03:4[5-6]$/);
+
+    await app.$('navClock').click();
+    await app.typeRemaining('3000'); // 30:00 faltando = minuto 15
+    await expect(app.$('clockTime')).toHaveText(/^(30:00|29:59)$/);
+    await app.$('clockOk').click();
+    await expect(app.$('classTime')).toHaveText(/^schedule15:0[0-1]$/);
+    expect(await app.states()).toBe('done,now,-,-,-,-');
   });
 
   test('previsão: só a partir dos 5 min e atualizada a cada 15 s', async ({ app }) => {

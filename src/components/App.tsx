@@ -3,6 +3,9 @@ import { RuntimeContext } from '../app/context';
 import type { Runtime } from '../app/runtime';
 import s from './App.module.css';
 import { BikesView } from './BikesView';
+import { ClockSync } from './ClockSync';
+import { EndClassDialog } from './EndClassDialog';
+import { FtpDialog } from './FtpDialog';
 import { Header } from './Header';
 import { LiveView } from './LiveView';
 import { SetupView } from './SetupView';
@@ -22,6 +25,9 @@ export function App({ runtime }: { runtime: Runtime }) {
           {view === 'live' && <LiveView />}
         </div>
         <footer class={s.version}>Versão {__APP_VERSION__}</footer>
+        {runtime.store.clockModal && <ClockSync />}
+        {runtime.store.ftpModal && <FtpDialog />}
+        {runtime.store.endModal && <EndClassDialog />}
       </div>
     </RuntimeContext.Provider>
   );

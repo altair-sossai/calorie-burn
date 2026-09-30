@@ -1,0 +1,17 @@
+.form{display:flex;flex-direction:column;gap:10px}
+
+/* − [ 215 ] + : o número grande no meio, os ajustes de 5 em 5 dos lados */
+.stepper{display:grid;grid-template-columns:56px minmax(0,1fr) 56px;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:6px}
+.bump{height:56px}
+.bump :global(.mi){font-size:30px}
+.input{
+  width:100%;min-width:0;background:none;border:1px solid transparent;border-radius:10px;color:var(--text);text-align:center;
+  font-family:"Oswald",sans-serif;font-weight:700;font-size:52px;line-height:1.1;padding:2px 0;font-variant-numeric:tabular-nums;
+  -moz-appearance:textfield;appearance:textfield;
+}
+.input::-webkit-outer-spin-button,.input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.input:focus{outline:none;border-color:var(--red)}
+.unit{text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-top:-4px}
+
+.info{margin:0;text-align:center;font-size:13px;line-height:1.4;color:var(--muted);min-height:1.4em}
+.info b{color:var(--text)}

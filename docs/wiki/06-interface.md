@@ -20,18 +20,23 @@ Diferenças pro React que aparecem no código: `class` em vez de `className`, `o
 
 ```
 App                       ← único inscrito no store; redesenha tudo a cada emit()
-├── Header                ← título, menu, prompts de FTP e relógio
-└── .stage
-    ├── SetupView         ← NumberField ×5, linha da bike, StartButton
-    ├── BikesView         ← busca, detectadas, Notice, BikeRow…, StartButton
-    └── LiveView
-        ├── BikePanel     ← nome, tempo da aula, zona, sem sinal, rpm, kcal, watts, Reconectar
-        │   └── FtpGauge  ← velocímetro SVG
-        ├── IntervalList  ← IntervalCard ×N, BonusCard
-        └── Forecast
+├── Header                ← sem aula: só o título "Configurar"; na aula: 5 botões (painel, bike, relógio, FTP, editar)
+├── .stage
+│   ├── SetupView         ← NumberField ×4, BikePicker, aviso #startBlock, "Iniciar aula" (#startBtn)
+│   ├── BikesView         ← (só na aula) BikePicker + "Voltar ao painel" (#backLive)
+│   │   └── BikePicker    ← busca, detectadas, Notice, BikeRow… (exportado de BikesView.tsx)
+│   └── LiveView
+│       ├── BikePanel     ← nome, tempo da aula, zona, sem sinal, rpm, kcal, watts, Reconectar
+│       │   └── FtpGauge  ← velocímetro SVG
+│       ├── IntervalList  ← IntervalCard ×N, BonusCard
+│       └── Forecast
+├── ClockSync             ← modal do relógio (montado só com store.clockModal), por cima de tudo
+├── FtpDialog             ← modal de FTP (só com store.ftpModal)
+└── EndClassDialog        ← confirmação do "Editar aula" (só com store.endModal)
+    (todos usam o Modal de Modal.tsx; relógio e FTP também o HoldButton)
 ```
 
-- Só a tela atual é montada (`{view === 'live' && <LiveView />}`).
+- Só a tela atual é montada (`{view === 'live' && <LiveView />}`). Os modais ficam fora do `.stage` e só são montados abertos — cada abertura começa do zero (o FTP do valor atual, o relógio fora do modo de digitar). O app não usa nenhuma caixa nativa (`prompt`/`alert`/`confirm`).
 - Os componentes pegam o store por **contexto**: `useRuntime()` em `src/app/context.ts` devolve `{ store, ble, scan }`.
 - Os `id`s são os mesmos do HTML antigo (`#rpm`, `#zone`, `#intervals`…) — os testes de fluxo usam esses ids.
 
@@ -45,9 +50,36 @@ Consequência: valores que dependem do tempo (tempo da aula, risco, "sem sinal" 
 
 ## Detalhes que valem a leitura
 
-### `Header.tsx` — prompts nativos
+### `Header.tsx` — o menu só existe na aula
 
-`window.prompt` foi escolhido de propósito: no meio da aula, suado, um teclado numérico nativo é mais rápido que um modal. A validação é do domínio (`parseFtpInput`, `parseClassTime`); o componente só chama `store.setFtp` / `store.syncClock`. No painel, o título some (5 botões não cabem com o nome no celular).
+Antes da aula o topo tem só a chama e o título "Configurar" — não há pra onde ir. Com a aula (`store.session`), o título some (5 botões não cabem com o nome no celular) e aparecem:
+
+| Botão | Faz |
+|---|---|
+| `#navLive` | painel |
+| `#navBikes` | aba Bike: trocar/reconectar a bike sem encerrar a aula |
+| `#navClock` | `store.openClock()` — abre o modal do relógio |
+| `#navFtp` | `store.openFtp()` — abre o modal de FTP (`FtpDialog`) |
+| `#navEdit` | `store.askEndClass()` — abre o modal "Editar aula" (`EndClassDialog`): **Continuar** (`cancelEndClass`) ou **Encerrar** (`endClass`, volta pra Configurar) |
+
+Os dois modais (relógio e FTP) usam o `Modal` de `Modal.tsx`: fundo escuro sobre o cartão, título com ícone, fecha tocando fora ou com Esc. No mesmo arquivo fica o `HoldButton`, o botão de ajuste que **repete segurando** (`pointerdown` dá o primeiro passo; depois de 400 ms, um passo a cada 80 ms até `pointerup`/`pointerleave`; pelo teclado, o `click` com `detail === 0` dá um passo).
+
+### `FtpDialog.tsx` — o modal de FTP
+
+Um `<input type="number">` grande entre `−` e `+` (`HoldButton`, 5 em 5 W), dentro de um `<form>` — Enter salva. O texto digitado fica num `useState` do próprio modal e só vai pro store no **Salvar** (`store.setFtp`, que também fecha); **Cancelar**/Esc/tocar fora → `store.closeFtp()` sem mudar nada. Texto vazio → `parseFtpInput` dá `null` e o Salvar fica desabilitado. Com a bike mandando leitura, o `#ftpInfo` mostra a prévia: "Agora: 160 W = 80% · zona 3". O `App` só monta o `FtpDialog` com `store.ftpModal` ligado, então cada abertura começa do FTP atual.
+
+### `ClockSync.tsx` — o modal do relógio
+
+Relógio em **contagem regressiva**, igual ao da sala (40:00, 39:59…): mostra `store.remaining()` em grande, como num timer: setas em cima (somam) e embaixo (tiram) dos minutos e dos segundos (`HoldButton` com `data-step` `min+`/`min-`/`sec+`/`sec-` → `store.shiftRemaining(±1)` ou `(±1/60)`; segurando, repetem) e, tocando no tempo, o relógio vira um campo de texto (`TypeTime`: `#clockInput`, já focado e com o tempo selecionado) pra digitar o que **falta**, validado por `parseClassTime` → `store.setRemaining`. Inválido → o aviso aparece embaixo do campo (`#clockInputHelp`, `aria-invalid`) e nada muda; **Voltar**/Esc volta pro relógio sem aplicar. Dois jeitos de estar aberto (`data-running` no `#clockModal`):
+
+- **Parado** (antes do play, ou depois de desfazer um marco): os ajustes mexem só no rascunho. Botões **Cancelar**/**Fechar** (`closeClock`) e **Iniciar**/**Play** (`beginClass`).
+- **Andando** (aberto pelo `#navClock` na aula): os ajustes valem na hora (`syncClock`); só tem **OK**.
+
+O modal fica dentro do `.phone` (`position:absolute` sobre o cartão, que é `position:relative`), então cabe em qualquer largura — o `layout.spec.ts` confere.
+
+### `SetupView.tsx` — Configurar
+
+Quatro campos (`goal`, `ftp`, `total`, `interval`; não tem kcal inicial), o `BikePicker` e o botão **Iniciar aula**, que chama `store.requestStart()`. Se não der pra começar, aparece o `#startBlock`: "Escolha a bike…" (`'noBike'`) ou "Bike 7 não está respondendo…" (`'noSignal'`).
 
 ### `FtpGauge.tsx` — o velocímetro
 
@@ -63,7 +95,7 @@ Um `useEffect` com dependência `[s.confirmedIdx]` rola a lista pra deixar o úl
 ### `BikePanel.tsx` — o que aparece quando
 
 - `live = store.showBike()` (20 s): define rpm/watts/%FTP ou "–".
-- `#classTime` só com relógio acertado; `#zone` só com %FTP; `#nosig` e `#reconnect` só sem sinal (Reconectar não aparece pra bike simulada).
+- `#classTime` só com o relógio andando (desde o play; some se você desfaz um marco); `#zone` só com %FTP; `#nosig` e `#reconnect` só sem sinal (Reconectar não aparece pra bike simulada).
 - Com FTP 0 o velocímetro some e a grade do topo perde a classe `wide` (coluna maior pro velocímetro).
 
 ## Estilos: `global.css` + um `*.module.css` por componente
@@ -86,3 +118,4 @@ src/components/FtpGauge.module.css    o estilo só dele
 1. Mude a opacidade das faixas apagadas do velocímetro de `.22` para `.35` e veja no `npm run dev`.
 2. Adicione a frequência cardíaca (`store.live.hr`) no `BikePanel`. Qual teste de layout pode quebrar? (Receita na página 9.)
 3. Por que `GEOMETRY` fica fora da função `FtpGauge`?
+4. No `ClockSync`, por que o `+1 s` com o relógio parado não acumula erro de ponto flutuante depois de 60 toques? (Olhe o `Math.round` em `store.setRemaining`.)

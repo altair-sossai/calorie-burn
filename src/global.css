@@ -46,5 +46,8 @@ body{
 .btn.ghost{background:var(--surface-2);color:var(--text);border:1px solid var(--line)}
 .btn[disabled]{opacity:.45;cursor:default}
 
-/* coluna das telas Configurar e Bikes */
+/* botões do rodapé dos modais (relógio, FTP): lado a lado, mesma largura */
+.modalActions{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;margin-top:2px}
+
+/* coluna das telas Configurar e Bike */
 .col{display:flex;flex-direction:column;gap:12px}

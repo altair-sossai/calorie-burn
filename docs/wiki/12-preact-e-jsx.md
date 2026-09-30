@@ -28,8 +28,8 @@ Essa chamada devolve um objeto leve (**virtual DOM**) descrevendo o elemento. O 
 Regras do JSX:
 
 - `{expressão}` insere valores: `{Math.round(store.live.kcal)}`.
-- Atributos com valor JS: `disabled={!store.session}`, `style={{ width: '50%' }}` (objeto).
-- Um único elemento raiz; pra agrupar sem criar `<div>`, use `<>…</>` (fragmento — veja `NO_BLE` em `BikesView.tsx`).
+- Atributos com valor JS: `data-running={running ? 'true' : 'false'}` (no `ClockSync`), `style={{ width: '50%' }}` (objeto).
+- Um único elemento raiz; pra agrupar sem criar `<div>`, use `<>…</>` (fragmento — veja `NO_BLE` e o `BikePicker` em `BikesView.tsx`, ou os 5 botões da aula no `Header`).
 - No Preact pode usar `class` (no React seria `className`).
 
 ## Componentes e props
@@ -41,7 +41,7 @@ function NavButton(p: { id: string; icon: string; label: string; active?: boolea
   return <button class={p.active ? 'navbtn active' : 'navbtn'} id={p.id} onClick={p.onClick}>…</button>;
 }
 
-<NavButton id="navFtp" icon="speed" label="Alterar FTP" onClick={askFtp} />
+<NavButton id="navFtp" icon="speed" label="Alterar FTP" onClick={() => store.openFtp()} />
 ```
 
 Props são somente-leitura: o filho não muda o pai; ele chama uma função recebida (`onClick`).
@@ -54,7 +54,7 @@ Props são somente-leitura: o filho não muda o pai; ele chama uma função rece
 {s.intervals.map((iv, i) => <IntervalCard key={i} … />)} // lista
 ```
 
-A `key` identifica cada item da lista entre renders, pra o Preact reaproveitar o elemento certo (e não "trocar" cartões de lugar). Em `BikesView`, `key={d.id}` usa o número da bike.
+A `key` identifica cada item da lista entre renders, pra o Preact reaproveitar o elemento certo (e não "trocar" cartões de lugar). No `BikePicker` (`BikesView.tsx`), `key={d.id}` usa o número da bike.
 
 ## Hooks usados
 
@@ -131,7 +131,7 @@ Mesma API (componentes, hooks, JSX); Preact tem ~4 KB contra ~45 KB. Diferenças
 ## Exercícios
 
 1. Em `Forecast.tsx`, adicione `console.log('render')` e veja no console: quantas vezes por segundo roda? Por quê?
-2. Remova o `key` do `map` em `BikesView` e rode `npm run dev`: o Preact avisa algo no console?
+2. Remova o `key` do `map` no `BikePicker` (`BikesView.tsx`) e rode `npm run dev`: o Preact avisa algo no console?
 3. Transforme o `BonusCard` pra receber `onClick` e mostrar um `alert` com a meta. Onde a função deveria ser criada?
 
 **Pra aprofundar:** [Preact — Tutorial](https://preactjs.com/tutorial) · [Preact — Hooks](https://preactjs.com/guide/v10/hooks) · [React — Pensando em React](https://pt-br.react.dev/learn/thinking-in-react) (os conceitos valem pro Preact)

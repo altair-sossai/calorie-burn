@@ -21,7 +21,7 @@ Passo a passo das mudanças mais comuns. Em todas: **teste primeiro no domínio*
 ## Adicionar um campo na tela Configurar (ex.: "peso")
 
 1. `src/state/storage.ts`: adicione em `Config` e na lista de campos de `loadConfig`.
-2. `src/state/store.ts`: `DEFAULT_CONFIG`, o tipo `Field`, `inputsFrom`, `parseField` (limites) e a lista em `startClass`.
+2. `src/state/store.ts`: `DEFAULT_CONFIG`, o tipo `Field`, `inputsFrom`, `parseField` (limites) e a lista em `requestStart`.
 3. `src/components/SetupView.tsx`: `<NumberField field="peso" icon="monitor_weight" label="Peso (kg)" />`.
 4. Testes: `storage.test.ts` (ida e volta) e `store.test.ts` (padrão e persistência). Dados antigos sem o campo usam o padrão — confira com um teste.
 
@@ -48,8 +48,8 @@ Os dados do usuário estão no celular dele — nunca quebre o formato antigo.
 
 ## Adicionar um botão no topo
 
-1. `src/components/Header.tsx`: um `<NavButton id=… icon=… label=… onClick=… />`.
-2. Cuidado com o espaço: no painel já são 5 botões. O teste de layout em 320 px verifica se o menu cabe no cartão.
+1. `src/components/Header.tsx`: um `<NavButton id=… icon=… label=… onClick=… />` dentro do bloco `{session && (…)}` — antes da aula não há menu (só a tela Configurar).
+2. Cuidado com o espaço: na aula já são 5 botões. O teste de layout em 320 px verifica se o menu cabe no cartão, e o teste "o menu só tem painel, bike, relógio, FTP e editar aula" (`setup-and-bikes.spec.ts`) conta os botões — atualize.
 
 ## Regerar os prints do README
 
@@ -57,7 +57,7 @@ Os dados do usuário estão no celular dele — nunca quebre o formato antigo.
 npm run screenshots
 ```
 
-O estado mostrado (aula no minuto 19:30, FTP 215, Bike simulada) está em `scripts/screenshots.mjs`.
+Gera `live.png` (aula no minuto 19:30, FTP 215, Bike simulada), `setup.png` (tela Configurar) e `clock.png` (Configurar depois de tocar em "Iniciar aula": o relógio parado esperando o play). O estado de cada um está em `scripts/screenshots.mjs`.
 
 ## Checklist antes de publicar
 
