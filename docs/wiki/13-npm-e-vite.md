@@ -42,7 +42,7 @@ O Vite tem dois modos bem diferentes:
 ```mermaid
 flowchart LR
   B[navegador pede /src/main.tsx] --> V[Vite]
-  V -->|transforma só esse arquivo:<br/>TS→JS, JSX→jsx()| B
+  V -->|"transforma só esse arquivo:<br/>TS→JS, JSX→jsx()"| B
   B -->|vê import './components/App'| V
 ```
 

@@ -24,7 +24,7 @@ sequenceDiagram
   R->>S: new AppStore({localStorage, Date.now, isListening})
   R->>R: new BluetoothController(...)
   R->>S: store.load()
-  Note over S: lê cfg, bikes e aula;<br/>aula válida → autoAdvance → view='live'
+  Note over S: lê cfg, bikes e aula,<br/>aula válida → autoAdvance → view='live'
   R->>R: registra eventos, ble.resume(true), setInterval(1 s)
   M->>P: render(<App runtime/>, #app)
   P->>N: primeiro desenho (tela de acordo com store.view)
