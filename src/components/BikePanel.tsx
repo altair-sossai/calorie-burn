@@ -18,7 +18,7 @@ export function BikePanel() {
   return (
     <div class={s.panel} id="bikepanel" data-zone={zone ?? undefined}>
       <div class={s.hd}>
-        <span class={s.title}><Icon name="directions_bike" class="sm" /> <span id="bikeName">{chosen != null ? bikeName(chosen) : 'Sem bike'}</span></span>
+        <span class={s.title}><Icon name="directions_bike" class="sm" /> <span class={s.name} id="bikeName">{chosen != null ? bikeName(chosen) : 'Sem bike'}</span></span>
         <span class={s.status} data-testid="panel-status">
           {t != null && <span class={s.ctime} id="classTime" title="Tempo da aula"><Icon name="schedule" class="sm" />{fmtClassTime(t)}</span>}
           {zone != null && <span class={s.zone} id="zone">Zona {zone}</span>}

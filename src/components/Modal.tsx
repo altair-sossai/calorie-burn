@@ -1,5 +1,5 @@
 import type { ComponentChildren, JSX } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import { Icon } from './Icon';
 import s from './Modal.module.css';
 
@@ -8,12 +8,14 @@ type ModalProps = { id: string; title: string; icon: string; onClose: () => void
   'id' | 'title' | 'icon'
 >;
 
-/** Janela por cima do cartão do app (relógio da aula, FTP). Fecha tocando fora ou com Esc. */
+/** Janela por cima do cartão do app (relógio da aula, FTP, editar aula). Fecha tocando fora ou com Esc. */
 export function Modal({ id, title, icon, onClose, children, ...rest }: ModalProps) {
   // o app redesenha a cada segundo: o Esc usa sempre o onClose mais recente, sem reinscrever o listener
   const close = useRef(onClose);
   close.current = onClose;
-  useEffect(() => {
+  // layout effect: o Esc já vale assim que o modal aparece (o useEffect do Preact só roda depois da pintura,
+  // e um Esc logo em seguida se perdia)
+  useLayoutEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close.current(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);

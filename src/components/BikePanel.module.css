@@ -8,9 +8,11 @@
 .panel[data-zone="5"]{--zc:var(--z5)}
 
 /* linha de cima: bike à esquerda; tempo da aula, zona e "sem sinal" à direita */
-.hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
-.title{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
-.status{display:flex;align-items:center;gap:8px}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+/* o nome da bike é que cede espaço (reticências): o tempo e a zona sempre cabem inteiros */
+.title{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;min-width:0}
+.name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status{display:flex;align-items:center;gap:8px;flex:0 0 auto}
 /* tempo da aula e zona: o mesmo selo (fonte, tamanho, altura); só o fundo muda — a zona pega a cor dela */
 .ctime,.zone{
   font-family:"Oswald",sans-serif;font-size:15px;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:.05em;
